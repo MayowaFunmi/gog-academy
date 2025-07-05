@@ -1,0 +1,14 @@
+export type StatusType =
+  | "success"
+  | "error"
+  | "conflict"
+  | "validation_error"
+  | "notFound"
+  | "unauthorized"
+  | "bad_request";
+
+export interface ApiResponse<T = unknown> {
+  status: StatusType;
+  message: string;
+  data?: T | null;
+}

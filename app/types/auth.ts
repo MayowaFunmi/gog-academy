@@ -21,7 +21,7 @@ export interface User {
   gender: "Male" | "Female";
   email: string
   phoneNumber: string
-  password: string
+  // password: string
   createdAt: string
   updatedAt: string
   isActive: boolean
@@ -31,7 +31,7 @@ export interface User {
 
 export interface UserDataResponse {
   user: User;
-  token: string;
+  accessToken: string;
 }
 
 export interface GenericResponse<T = unknown> {

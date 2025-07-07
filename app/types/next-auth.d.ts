@@ -13,7 +13,7 @@ declare module "next-auth" {
       gender: "Male" | "Female";
       email: string;
       phoneNumber: string;
-      password: string;
+      // password: string;
       createdAt: string;
       updatedAt: string;
       isActive: boolean;

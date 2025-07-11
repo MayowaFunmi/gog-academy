@@ -97,7 +97,7 @@ model UserProfile {
   reasonForJoining String @map("reason_for_joining")
   churchName String @map("church_name")
   occupation String @map("occupation")
-  profilePicture String @map("profile_picture")
+  profilePicture String? @map("profile_picture")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   refereeName String @map("referee_name")

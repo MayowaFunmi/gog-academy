@@ -1,13 +1,19 @@
 // services/user.service.ts
 import { prisma } from "@/lib/prisma";
-import { UserLoginDto, UserRegistrationDto } from "../dto/user.dto";
+import {
+  UserLoginDto,
+  UserProfileDto,
+  UserRegistrationDto,
+} from "../dto/user.dto";
 import { ApiResponse } from "../types/apiResponse";
 import { hashPassowrd, validatePassword } from "../providers/passwords";
 import { createUniqueCode } from "@/app/utils/createUniqueCode";
 import { PayloadType } from "../types/payload";
 import { signJwt } from "../providers/jwtProvider";
 
-export const userService = {
+export class UserService {
+  constructor() {}
+
   async createUser(data: UserRegistrationDto): Promise<ApiResponse> {
     try {
       const {
@@ -104,7 +110,7 @@ export const userService = {
         data: null,
       };
     }
-  },
+  }
 
   /**
    * Logs in a user with the provided credentials.
@@ -194,7 +200,7 @@ export const userService = {
         message: "An unexpected error occurred",
       };
     }
-  },
+  }
 
   async logout(userId: string): Promise<ApiResponse> {
     try {
@@ -228,5 +234,95 @@ export const userService = {
         data: null,
       };
     }
-  },
-};
+  }
+
+  async createUserProfile(
+    data: UserProfileDto,
+    userId: string
+  ): Promise<ApiResponse> {
+    try {
+      const {
+        title,
+        dateOfBirth,
+        address,
+        stateOfResidence,
+        country,
+        maritalStatus,
+        salvationStatus,
+        salvationStory,
+        gogMembershipDate,
+        gogMembershipStatus,
+        classCommitmentStatus,
+        assignmentCommitmentStatus,
+        reasonForJoining,
+        churchName,
+        occupation,
+        profilePicture,
+        refereeName,
+        refereePhoneNumber,
+        refereeEmail,
+        refereeRelationship,
+        consentCheck,
+      } = data;
+
+      const user = await prisma.user.findFirst({
+        where: { id: userId },
+        include: { userProfile: true },
+      });
+
+      if (!user) {
+        return {
+          status: "notFound",
+          message: "User not found",
+        };
+      }
+      if (user.userProfile) {
+        return {
+          status: "conflict",
+          message: "User already has a profile",
+        };
+      }
+
+      const profile = await prisma.$transaction(async (tx) => {
+        const newProfile = await tx.userProfile.create({
+          data: {
+            userId,
+            title,
+            dateOfBirth,
+            address,
+            stateOfResidence,
+            country,
+            maritalStatus,
+            salvationStatus,
+            salvationStory,
+            gogMembershipStatus,
+            gogMembershipDate,
+            classCommitmentStatus,
+            assignmentCommitmentStatus,
+            reasonForJoining,
+            churchName,
+            occupation,
+            profilePicture,
+            refereeName,
+            refereePhoneNumber,
+            refereeEmail,
+            refereeRelationship,
+            consentCheck,
+          },
+        });
+        return newProfile;
+      });
+      return {
+        status: "success",
+        message: "User prifle created successfully",
+        data: profile,
+      };
+    } catch (error) {
+      console.error("Error logging in user:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+}

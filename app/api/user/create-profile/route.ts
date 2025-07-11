@@ -1,10 +1,10 @@
 import { mapHttpStatus } from "@/app/utils/mapHttpPresponse";
+import { userController } from "@/backend/controller/user.module";
+import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { User } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { authMiddleware } from "@/backend/utils/authMiddleware";
-import { userController } from "@/backend/controller/user.module";
 
-const logoutUser = async ({
+const userProfile = async ({
   request,
   user,
 }: {
@@ -12,8 +12,7 @@ const logoutUser = async ({
   user: User;
 }): Promise<NextResponse> => {
   try {
-    const result = await userController.logout(request, user);
-
+    const result = await userController.createUserProfile(request, user.id);
     return NextResponse.json(
       {
         status: result.status,
@@ -36,4 +35,4 @@ const logoutUser = async ({
   }
 };
 
-export const POST = authMiddleware(logoutUser);
+export const POST = authMiddleware(userProfile);

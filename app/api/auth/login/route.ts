@@ -1,5 +1,5 @@
 import { mapHttpStatus } from "@/app/utils/mapHttpPresponse";
-import { userController } from "@/backend/controller/user.controller";
+import { userController } from "@/backend/controller/user.module";
 import { ApiResponse } from "@/backend/types/apiResponse";
 import { NextResponse } from "next/server";
 

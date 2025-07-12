@@ -243,6 +243,7 @@ export class UserService {
     try {
       const {
         title,
+        cohortId,
         dateOfBirth,
         address,
         stateOfResidence,
@@ -265,7 +266,18 @@ export class UserService {
         consentCheck,
       } = data;
 
-      const user = await prisma.user.findFirst({
+      const cohort = await prisma.academyCohort.findUnique({
+        where: { id: cohortId }
+      })
+
+      if (!cohort) {
+        return {
+          status: "notFound",
+          message: "Cohort not found",
+        };
+      }
+
+      const user = await prisma.user.findUnique({
         where: { id: userId },
         include: { userProfile: true },
       });
@@ -287,6 +299,7 @@ export class UserService {
         const newProfile = await tx.userProfile.create({
           data: {
             userId,
+            cohortId,
             title,
             dateOfBirth,
             address,

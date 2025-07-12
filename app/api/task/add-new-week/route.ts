@@ -1,19 +1,15 @@
 import { mapHttpStatus } from "@/app/utils/mapHttpPresponse";
-import { User } from "@prisma/client";
-import { NextResponse } from "next/server";
+import { taskController } from "@/backend/controller/task/task.module";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
-import { userController } from "@/backend/controller/user/user.module";
+import { NextResponse } from "next/server";
 
-const logoutUser = async ({
+const addWeek = async ({
   request,
-  user,
 }: {
   request: Request;
-  user: User;
 }): Promise<NextResponse> => {
   try {
-    const result = await userController.logout(request, user);
-
+    const result = await taskController.createWeek(request);
     return NextResponse.json(
       {
         status: result.status,
@@ -36,4 +32,4 @@ const logoutUser = async ({
   }
 };
 
-export const POST = authMiddleware(logoutUser);
+export const POST = authMiddleware(addWeek, ["SuperAdmin"]);

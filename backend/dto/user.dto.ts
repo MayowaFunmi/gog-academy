@@ -44,6 +44,10 @@ const TitleEnum = z.enum([
 
 export const userProfileSchema = z.object({
   title: TitleEnum,
+  cohortId: z
+    .string({
+      required_error: "Cohort id is required",
+    }),
   dateOfBirth: z
     .string()
     .datetime({ message: "Invalid date." }),

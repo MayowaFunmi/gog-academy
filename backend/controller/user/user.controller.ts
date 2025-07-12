@@ -1,15 +1,16 @@
 import { ZodError } from "zod";
 import { User } from "@prisma/client";
-import { ApiResponse } from "../types/apiResponse";
+import { ApiResponse } from "../../types/apiResponse";
 import {
   userLoginSchema,
   userProfileSchema,
   userRegistrationSchema,
-} from "../dto/user.dto";
-import { UserService } from "../service/user.service";
+} from "../../dto/user.dto";
+import { UserService } from "../../service/user.service";
 
 export class UserController {
   constructor(private userService: UserService) {}
+
   async register(request: Request): Promise<ApiResponse<User | unknown>> {
     try {
       const body = await request.json();
@@ -71,7 +72,15 @@ export class UserController {
   }
 
   async logout(request: Request, user: User): Promise<ApiResponse> {
-    return await this.userService.logout(user.id);
+    try {
+      return await this.userService.logout(user.id);
+    } catch (error) {
+      console.error("Unhandled controller error:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
   }
 
   async createUserProfile(

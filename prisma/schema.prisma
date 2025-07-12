@@ -8,11 +8,11 @@ generator client {
 }
 
 model Role {
-  id String @id @default(uuid())
-  name String @unique
+  id        String     @id @default(uuid())
+  name      String     @unique
   userRoles UserRole[]
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
 
   @@map("roles")
 }
@@ -23,30 +23,30 @@ enum Gender {
 }
 
 model User {
-  id String @id @default(uuid())
-  username String @unique
-  uniqueId String @unique @map("unique_id")
-  matricNumber String? @unique @map("matric_number")
-  firstName String
-  lastName String
-  gender Gender
-  email String @unique
-  phoneNumber String @unique @map("phone_number")
-  password String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  roles UserRole[]
-  userProfile UserProfile?
-  isActive Boolean @default(false) @map("is_active")
-  lastLogin DateTime? @map("last_login")
+  id           String       @id @default(uuid())
+  username     String       @unique
+  uniqueId     String       @unique @map("unique_id")
+  matricNumber String?      @unique @map("matric_number")
+  firstName    String
+  lastName     String
+  gender       Gender
+  email        String       @unique
+  phoneNumber  String       @unique @map("phone_number")
+  password     String
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  roles        UserRole[]
+  userProfile  UserProfile?
+  isActive     Boolean      @default(false) @map("is_active")
+  lastLogin    DateTime?    @map("last_login")
 
   @@map("users")
 }
 
 model UserRole {
-  id String @id @default(uuid())
-  userId String
-  roleId String
+  id        String   @id @default(uuid())
+  userId    String
+  roleId    String
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -80,32 +80,96 @@ enum Title {
 }
 
 model UserProfile {
-  id String @id @default(uuid())
-  userId String @unique @map("user_id")
-  title Title
-  dateOfBirth DateTime @map("date_of_birth")
-  address String
-  stateOfResidence String @map("state_of_residence")
-  country String
-  maritalStatus String @map("marital_status")
-  salvationStatus String @map("salvation_status")
-  salvationStory String @map("salvation_story")
-  gogMembershipStatus Boolean @map("gog_membership_status")
-  gogMembershipDate DateTime? @map("gog_membership_date")
-  classCommitmentStatus Boolean @map("commitment_status")
-  assignmentCommitmentStatus Boolean @map("assignment_commitment_status")
-  reasonForJoining String @map("reason_for_joining")
-  churchName String @map("church_name")
-  occupation String @map("occupation")
-  profilePicture String? @map("profile_picture")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  refereeName String @map("referee_name")
-  refereePhoneNumber String @map("referee_phone_number")
-  refereeEmail String @map("referee_email")
-  refereeRelationship String @map("referee_relationship")
-  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  consentCheck Boolean @default(false) @map("consent_check")
+  id                         String    @id @default(uuid())
+  cohortId                   String
+  userId                     String    @unique @map("user_id")
+  title                      Title
+  dateOfBirth                DateTime  @map("date_of_birth")
+  address                    String
+  stateOfResidence           String    @map("state_of_residence")
+  country                    String
+  maritalStatus              String    @map("marital_status")
+  salvationStatus            String    @map("salvation_status")
+  salvationStory             String    @map("salvation_story")
+  gogMembershipStatus        Boolean   @map("gog_membership_status")
+  gogMembershipDate          DateTime? @map("gog_membership_date")
+  classCommitmentStatus      Boolean   @map("commitment_status")
+  assignmentCommitmentStatus Boolean   @map("assignment_commitment_status")
+  reasonForJoining           String    @map("reason_for_joining")
+  churchName                 String    @map("church_name")
+  occupation                 String    @map("occupation")
+  profilePicture             String?   @map("profile_picture")
+  createdAt                  DateTime  @default(now()) @map("created_at")
+  updatedAt                  DateTime  @updatedAt @map("updated_at")
+  refereeName                String    @map("referee_name")
+  refereePhoneNumber         String    @map("referee_phone_number")
+  refereeEmail               String    @map("referee_email")
+  refereeRelationship        String    @map("referee_relationship")
+  user                       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  consentCheck               Boolean   @default(false) @map("consent_check")
 
   @@map("user_profiles")
+}
+
+model AcademyCohort {
+  id        String   @id @default(uuid())
+  cohort    String // mount zion, mount carmel, mount olives
+  slug      String   @unique
+  startDate DateTime @map("date_started")
+  batch     String   @map("cohor_batch")
+  endDate   DateTime @map("date_ended")
+
+  taskTypes    AcademyTaskType[]
+  academicWeek AcademicWeek[]
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  @@map("academy_cohort")
+}
+
+model AcademyTaskType {
+  id         String        @id @default(uuid())
+  cohortId   String        @map("cohort_id")
+  name       String // lecture, SSG, assignment, sermon, exams, etc
+  slug       String
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+  dailyTasks DailyTask[]   @relation("TypeTasks") // one-to-many
+  cohort     AcademyCohort @relation(fields: [cohortId], references: [id])
+
+  @@map("academic_task_type")
+}
+
+model AcademicWeek {
+  id          String   @id @default(uuid())
+  cohortId    String   @map("cohort_id")
+  weekNumber  Int
+  startDate   DateTime @map("start_date")
+  endDate     DateTime @map("end_date")
+  // currentWeek Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  dailyTasks DailyTask[]   @relation("WeekTasks") // one-to-many
+  cohort     AcademyCohort @relation(fields: [cohortId], references: [id])
+
+  @@map("academic_week")
+}
+
+model DailyTask {
+  id          String   @id @default(uuid())
+  title       String?
+  taskTypeId  String
+  description String
+  weekId      String
+  startDay    DateTime @map("start_day")
+  endDay      DateTime @map("end_day")
+  activated   Boolean
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  academicWeek AcademicWeek    @relation("WeekTasks", fields: [weekId], references: [id])
+  taskType     AcademyTaskType @relation("TypeTasks", fields: [taskTypeId], references: [id])
+
+  @@map("daily_task")
 }

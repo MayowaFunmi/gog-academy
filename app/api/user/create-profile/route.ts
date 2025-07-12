@@ -1,5 +1,5 @@
 import { mapHttpStatus } from "@/app/utils/mapHttpPresponse";
-import { userController } from "@/backend/controller/user.module";
+import { userController } from "@/backend/controller/user/user.module";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { User } from "@prisma/client";
 import { NextResponse } from "next/server";

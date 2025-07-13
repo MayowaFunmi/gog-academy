@@ -4,15 +4,13 @@ import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { User } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-const userProfile = async ({
-  request,
-  user,
-}: {
-  request: NextRequest;
-  user: User;
-}): Promise<NextResponse> => {
+const userProfile = async (
+  request: NextRequest,
+  context: { user: Promise<User> }
+): Promise<NextResponse> => {
   try {
-    const result = await userController.createUserProfile(request, user.id);
+    const { id } = await context.user
+    const result = await userController.createUserProfile(request, id);
     return NextResponse.json(
       {
         status: result.status,

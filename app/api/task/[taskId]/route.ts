@@ -8,8 +8,7 @@ const updateTaskActivation = async (
 ): Promise<NextResponse> => {
   try {
     // const taskId = context.params.taskId;
-    const params = await context.params;
-    const taskId = params.taskId
+    const { taskId } = await context.params;
     if (!taskId) {
       return NextResponse.json(
         {

@@ -72,9 +72,9 @@ export class UserController {
     }
   }
 
-  async logout(request: NextRequest, user: User): Promise<ApiResponse> {
+  async logout(request: NextRequest, userId: string): Promise<ApiResponse> {
     try {
-      return await this.userService.logout(user.id);
+      return await this.userService.logout(userId);
     } catch (error) {
       console.error("Unhandled controller error:", error);
       return {

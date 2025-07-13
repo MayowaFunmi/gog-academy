@@ -4,15 +4,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { userController } from "@/backend/controller/user/user.module";
 
-const logoutUser = async ({
-  request,
-  user,
-}: {
-  request: NextRequest;
-  user: User;
-}): Promise<NextResponse> => {
+const logoutUser = async (
+  request: NextRequest,
+  context: { user: Promise<User> }
+): Promise<NextResponse> => {
   try {
-    const result = await userController.logout(request, user);
+    const { id } = await context.user
+    const result = await userController.logout(request, id);
 
     return NextResponse.json(
       {

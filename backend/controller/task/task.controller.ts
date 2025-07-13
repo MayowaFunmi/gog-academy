@@ -2,14 +2,16 @@ import {
   createAcademyCohortSchema,
   createAcademyTaskTypeSchema,
   createAcademyWeekSchema,
+  createDailyTaskSchema,
 } from "@/backend/dto/task.dto";
 import { TaskService } from "@/backend/service/task.service";
 import { ApiResponse } from "@/backend/types/apiResponse";
+import { NextRequest } from "next/server";
 
 export class TaskController {
   constructor(private taskService: TaskService) {}
 
-  async createCohort(request: Request): Promise<ApiResponse> {
+  async createCohort(request: NextRequest): Promise<ApiResponse> {
     try {
       const body = await request.json();
       const validatedData = createAcademyCohortSchema.parse(body);
@@ -23,7 +25,7 @@ export class TaskController {
     }
   }
 
-  async createTaskType(request: Request): Promise<ApiResponse> {
+  async createTaskType(request: NextRequest): Promise<ApiResponse> {
     try {
       const body = await request.json();
       const validatedData = createAcademyTaskTypeSchema.parse(body);
@@ -37,11 +39,37 @@ export class TaskController {
     }
   }
 
-  async createWeek(request: Request): Promise<ApiResponse> {
+  async createWeek(request: NextRequest): Promise<ApiResponse> {
     try {
       const body = await request.json();
       const validatedData = createAcademyWeekSchema.parse(body);
       return await this.taskService.createNewWeek(validatedData);
+    } catch (error) {
+      console.error("Unhandled controller error:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+
+  async createDailyTask(request: NextRequest): Promise<ApiResponse> {
+    try {
+      const body = await request.json();
+      const validatedData = createDailyTaskSchema.parse(body);
+      return await this.taskService.createDailyTask(validatedData);
+    } catch (error) {
+      console.error("Unhandled controller error:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+
+  async updateTaskActivation(taskId: string): Promise<ApiResponse> {
+    try {
+      return await this.taskService.activateDailyTask(taskId);
     } catch (error) {
       console.error("Unhandled controller error:", error);
       return {

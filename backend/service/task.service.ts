@@ -3,6 +3,7 @@ import {
   CreateAcademyCohortDto,
   CreateAcademyTaskTypeDto,
   CreateAcademyWeekDto,
+  CreateDailyTaskDto,
 } from "../dto/task.dto";
 import { ApiResponse } from "../types/apiResponse";
 import { generateCohortSlug, slugify } from "../utils/slugify";
@@ -17,14 +18,14 @@ export class TaskService {
     try {
       const { cohort, batch, startDate, endDate } = data;
 
-      const dateStarted = new Date(startDate)
-      const dateEnded = new Date(endDate)
+      const dateStarted = new Date(startDate);
+      const dateEnded = new Date(endDate);
 
       if (dateStarted < dateEnded) {
         return {
-        status: "error",
-        message: "Start date must be after end date",
-      };
+          status: "error",
+          message: "Start date must be after end date",
+        };
       }
       const cohort_slug = await generateCohortSlug(cohort, batch);
       if (cohort_slug.status === "conflict") {
@@ -170,6 +171,115 @@ export class TaskService {
         message: `Week ${weekNumber} created successfully`,
         data: createdWeek,
       };
+    } catch (error) {
+      console.error("Error logging out user:", error);
+
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+        data: null,
+      };
+    }
+  }
+
+  async createDailyTask(data: CreateDailyTaskDto): Promise<ApiResponse> {
+    try {
+      const { taskTypeId, description, weekId, startDay, endDay, activated } =
+        data;
+
+      const taskType = await prisma.academyTaskType.findUnique({
+        where: { id: taskTypeId },
+      });
+
+      if (!taskType) {
+        return {
+          status: "notFound",
+          message: "Task category not found",
+        };
+      }
+
+      const week = await prisma.academicWeek.findUnique({
+        where: { id: weekId },
+      });
+
+      if (!week) {
+        return {
+          status: "notFound",
+          message: "Week not found",
+        };
+      }
+
+      const start = new Date(startDay);
+      const end = new Date(endDay);
+
+      if (start > end || start < week.startDate || end > week.endDate) {
+        return {
+          status: "error",
+          message: "check the start and/or end date(s)",
+        };
+      }
+
+      const createdTask = await prisma.$transaction(async (tx) => {
+        const newTask = await tx.dailyTask.create({
+          data: {
+            title: taskType.name,
+            taskTypeId,
+            description,
+            weekId,
+            startDay,
+            endDay,
+            activated,
+          },
+        });
+        return newTask;
+      });
+      return {
+        status: "success",
+        message: `Daily task created successfully`,
+        data: createdTask,
+      };
+    } catch (error) {
+      console.error("Error logging out user:", error);
+
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+        data: null,
+      };
+    }
+  }
+
+  async activateDailyTask(taskId: string): Promise<ApiResponse> {
+    try {
+      const taskExists = await prisma.dailyTask.findUnique({
+        where: { id: taskId },
+      });
+      if (!taskExists) {
+        return {
+          status: "notFound",
+          message: "Task not found",
+        };
+      }
+
+      if (taskExists.activated) {
+        return {
+          status: "bad_request",
+          message: "Task is already active",
+        };
+      }
+
+      const updatedTask = await prisma.$transaction(async (tx) => {
+        return tx.dailyTask.update({
+          where: { id: taskId },
+          data: { activated: true },
+        });
+      });
+
+      return {
+          status: "success",
+          message: "Task activated successfully",
+          data: updatedTask
+        };
     } catch (error) {
       console.error("Error logging out user:", error);
 

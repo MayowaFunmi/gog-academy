@@ -1,6 +1,6 @@
 import { mapHttpStatus } from "@/app/utils/mapHttpPresponse";
 import { User } from "@prisma/client";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { userController } from "@/backend/controller/user/user.module";
 
@@ -8,7 +8,7 @@ const logoutUser = async ({
   request,
   user,
 }: {
-  request: Request;
+  request: NextRequest;
   user: User;
 }): Promise<NextResponse> => {
   try {

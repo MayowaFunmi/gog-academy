@@ -9,7 +9,7 @@ import { verifyJWT } from "../providers/jwtProvider";
  * @returns {Function} - A Next.js route handler.
  */
 export function authMiddleware(handler, allowedRoles = []) {
-  return async function (request) {
+  return async function (request, context) {
     try {
       const authHeader = request.headers.get("Authorization");
 
@@ -18,10 +18,14 @@ export function authMiddleware(handler, allowedRoles = []) {
       }
 
       const token = authHeader.split(" ")[1];
-      const decoded = verifyJWT(token);
+      const decodedUser = verifyJWT(token);
+
+      if (!decodedUser) {
+        return NextResponse.json({ message: "Invalid token" }, { status: 401 });
+      }
 
       if (allowedRoles.length > 0) {
-        const userRoles = decoded.roles || [];
+        const userRoles = decodedUser.roles || [];
         const hasAccess = allowedRoles.some((role) =>
           userRoles.includes(role)
         );
@@ -31,8 +35,8 @@ export function authMiddleware(handler, allowedRoles = []) {
         }
       }
 
-      // Pass user info to the handler
-      return await handler({ request, user: decoded });
+      context.user = decodedUser
+      return await handler(request, context);
     } catch (error) {
       console.error("Authentication error:", error);
       return NextResponse.json(

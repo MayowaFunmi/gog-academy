@@ -3,13 +3,13 @@ import { taskController } from "@/backend/controller/task/task.module";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { NextRequest, NextResponse } from "next/server";
 
-const addWeek = async ({
+const addDailyTask = async ({
   request,
 }: {
-  request: NextRequest;
+  request: NextRequest
 }): Promise<NextResponse> => {
   try {
-    const result = await taskController.createWeek(request);
+    const result = await taskController.createDailyTask(request);
     return NextResponse.json(
       {
         status: result.status,
@@ -32,4 +32,4 @@ const addWeek = async ({
   }
 };
 
-export const POST = authMiddleware(addWeek, ["SuperAdmin"]);
+export const POST = authMiddleware(addDailyTask, ["SuperAdmin"]);

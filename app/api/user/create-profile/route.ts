@@ -2,13 +2,13 @@ import { mapHttpStatus } from "@/app/utils/mapHttpPresponse";
 import { userController } from "@/backend/controller/user/user.module";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { User } from "@prisma/client";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const userProfile = async ({
   request,
   user,
 }: {
-  request: Request;
+  request: NextRequest;
   user: User;
 }): Promise<NextResponse> => {
   try {

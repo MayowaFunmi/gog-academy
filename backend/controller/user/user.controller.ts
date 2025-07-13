@@ -7,11 +7,12 @@ import {
   userRegistrationSchema,
 } from "../../dto/user.dto";
 import { UserService } from "../../service/user.service";
+import { NextRequest } from "next/server";
 
 export class UserController {
   constructor(private userService: UserService) {}
 
-  async register(request: Request): Promise<ApiResponse<User | unknown>> {
+  async register(request: NextRequest): Promise<ApiResponse<User | unknown>> {
     try {
       const body = await request.json();
       const validatedData = userRegistrationSchema.parse(body);
@@ -41,7 +42,7 @@ export class UserController {
     }
   }
 
-  async login(request: Request): Promise<ApiResponse> {
+  async login(request: NextRequest): Promise<ApiResponse> {
     try {
       const body = await request.json();
       const validatedData = userLoginSchema.parse(body);
@@ -71,7 +72,7 @@ export class UserController {
     }
   }
 
-  async logout(request: Request, user: User): Promise<ApiResponse> {
+  async logout(request: NextRequest, user: User): Promise<ApiResponse> {
     try {
       return await this.userService.logout(user.id);
     } catch (error) {
@@ -84,7 +85,7 @@ export class UserController {
   }
 
   async createUserProfile(
-    request: Request,
+    request: NextRequest,
     userId: string
   ): Promise<ApiResponse> {
     try {

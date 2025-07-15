@@ -1,9 +1,19 @@
-import { AuthResponse, RegisterFields } from "@/app/types/auth";
+import { AuthResponse, LoginFields, RegisterFields } from "@/app/types/auth";
 import { apiClient } from "./application";
 
-const signIn = async (data: RegisterFields): Promise<AuthResponse> => {
+const signIn = async (data: LoginFields): Promise<AuthResponse> => {
   try {
-    const response = await apiClient.post("api/auth/login", data);
+    const response = await apiClient.post("/api/auth/login", data);
+    return response.data as AuthResponse
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+}
+
+const signUp = async (data: RegisterFields): Promise<AuthResponse> => {
+  try {
+    const response = await apiClient.post("/api/auth/register", data)
     return response.data as AuthResponse
   } catch (error) {
     console.error("API error:", error);
@@ -12,7 +22,7 @@ const signIn = async (data: RegisterFields): Promise<AuthResponse> => {
 }
 
 const apiEndpointCalls = {
-  signIn
+  signIn, signUp
 }
 
 export default apiEndpointCalls

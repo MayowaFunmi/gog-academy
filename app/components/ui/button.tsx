@@ -26,7 +26,7 @@ const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {isLoading ? (
-        <span className="flex items-center">
+        <span className="flex items-center justify-center">
           <svg
             className={classNames('animate-spin h-5 w-5 mr-2', spinnerColorClass)} // Apply spinner color
             xmlns="http://www.w3.org/2000/svg"

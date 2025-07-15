@@ -100,4 +100,12 @@ export class UserController {
       };
     }
   }
+
+  async getAllUsers(page = 1, limit = 10) {
+    return await this.userService.getAllUsers(page, limit)
+  }
+
+  async getUserById(userId: string): Promise<ApiResponse> {
+    return await this.userService.getUserById(userId)
+  }
 }

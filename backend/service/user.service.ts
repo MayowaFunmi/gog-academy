@@ -5,11 +5,12 @@ import {
   UserProfileDto,
   UserRegistrationDto,
 } from "../dto/user.dto";
-import { ApiResponse } from "../types/apiResponse";
+import { ApiResponse, PaginationMeta } from "../types/apiResponse";
 import { hashPassowrd, validatePassword } from "../providers/passwords";
 import { createUniqueCode } from "@/app/utils/createUniqueCode";
 import { PayloadType } from "../types/payload";
 import { signJwt } from "../providers/jwtProvider";
+import { User } from "@prisma/client";
 
 export class UserService {
   constructor() {}
@@ -267,8 +268,8 @@ export class UserService {
       } = data;
 
       const cohort = await prisma.academyCohort.findUnique({
-        where: { id: cohortId }
-      })
+        where: { id: cohortId },
+      });
 
       if (!cohort) {
         return {
@@ -330,6 +331,99 @@ export class UserService {
         message: "User prifle created successfully",
         data: profile,
       };
+    } catch (error) {
+      console.error("Error logging in user:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+
+  async getAllUsers(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<ApiResponse<{ users: User[]; pagination: PaginationMeta }>> {
+    try {
+      const skip = (page - 1) * limit;
+      const [totalItems, users] = await prisma.$transaction([
+        prisma.user.count(),
+        prisma.user.findMany({
+          skip,
+          take: limit,
+          orderBy: {
+            createdAt: "asc",
+          },
+          include: {
+            roles: {
+              include: {
+                role: true,
+              },
+            },
+            userProfile: true,
+          },
+        }),
+      ]);
+
+      const totalPages = Math.ceil(totalItems / limit);
+      const pagination: PaginationMeta = {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      };
+
+      return {
+        status: "success",
+        message: "Users fetched successfully",
+        data: {
+          users: users.map((u) => ({ ...u, password: "" })),
+          pagination,
+        },
+      };
+    } catch (error) {
+      console.error("Error logging in user:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+
+  async getUserById(userId: string): Promise<ApiResponse<User>> {
+    if (!userId) {
+      return {
+        status: "bad_request",
+        message: "User Id cannot be null",
+      };
+    }
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          roles: {
+            include: {
+              role: true,
+            },
+          },
+          userProfile: true,
+        },
+      });
+
+      if (!user) {
+        return {
+          status: "notFound",
+          message: "User not found",
+        };
+      }
+      return {
+        status: "success",
+        message: "User fetched successfully",
+        data: user
+      }
     } catch (error) {
       console.error("Error logging in user:", error);
       return {

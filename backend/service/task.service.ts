@@ -5,9 +5,10 @@ import {
   CreateAcademyWeekDto,
   CreateDailyTaskDto,
 } from "../dto/task.dto";
-import { ApiResponse } from "../types/apiResponse";
+import { ApiResponse, PaginationMeta } from "../types/apiResponse";
 import { generateCohortSlug, slugify } from "../utils/slugify";
 import { differenceInDays } from "date-fns";
+import { AcademyCohort } from "@prisma/client";
 
 export class TaskService {
   constructor() {}
@@ -56,6 +57,55 @@ export class TaskService {
         status: "error",
         message: "An unexpected error occurred",
         data: null,
+      };
+    }
+  }
+
+  async getAllCohorts(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<
+    ApiResponse<{ cohorts: AcademyCohort[]; pagination: PaginationMeta }>
+  > {
+    try {
+      const skip = (page - 1) * limit;
+      const [totalItems, cohorts] = await prisma.$transaction([
+        prisma.academyCohort.count(),
+        prisma.academyCohort.findMany({
+          skip,
+          take: limit,
+          orderBy: {
+            createdAt: "desc",
+          },
+          include: {
+            taskTypes: true,
+            academicWeek: true,
+          },
+        }),
+      ]);
+
+      const totalPages = Math.ceil(totalItems / limit);
+      const pagination: PaginationMeta = {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      };
+      return {
+        status: "success",
+        message: "Cohorts fetched successfully",
+        data: {
+          cohorts,
+          pagination,
+        },
+      }
+    } catch (error) {
+      console.error("Error logging in user:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
       };
     }
   }
@@ -276,10 +326,10 @@ export class TaskService {
       });
 
       return {
-          status: "success",
-          message: "Task activated successfully",
-          data: updatedTask
-        };
+        status: "success",
+        message: "Task activated successfully",
+        data: updatedTask,
+      };
     } catch (error) {
       console.error("Error logging out user:", error);
 

@@ -78,4 +78,8 @@ export class TaskController {
       };
     }
   }
+
+  async getAllCohorts(page = 1, limit = 10) {
+    return await this.taskService.getAllCohorts(page, limit)
+  }
 }

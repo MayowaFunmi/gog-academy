@@ -3,11 +3,7 @@ import { taskController } from "@/backend/controller/task/task.module";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { NextRequest, NextResponse } from "next/server";
 
-const addCategory = async ({
-  request,
-}: {
-  request: NextRequest;
-}): Promise<NextResponse> => {
+const addCategory = async (request: NextRequest): Promise<NextResponse> => {
   try {
     const result = await taskController.createTaskType(request);
     return NextResponse.json(

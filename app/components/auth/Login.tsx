@@ -51,6 +51,7 @@ const Login = () => {
       reset();
       router.push("/");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isError, error, isSuccess, reset]);
 
   return (

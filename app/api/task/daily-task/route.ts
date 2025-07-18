@@ -3,11 +3,7 @@ import { taskController } from "@/backend/controller/task/task.module";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { NextRequest, NextResponse } from "next/server";
 
-const addDailyTask = async ({
-  request,
-}: {
-  request: NextRequest
-}): Promise<NextResponse> => {
+const addDailyTask = async (request: NextRequest): Promise<NextResponse> => {
   try {
     const result = await taskController.createDailyTask(request);
     return NextResponse.json(

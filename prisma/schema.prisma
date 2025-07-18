@@ -80,33 +80,34 @@ enum Title {
 }
 
 model UserProfile {
-  id                         String    @id @default(uuid())
+  id                         String      @id @default(uuid())
   cohortId                   String
-  userId                     String    @unique @map("user_id")
+  userId                     String      @unique @map("user_id")
   title                      Title
-  dateOfBirth                DateTime  @map("date_of_birth")
+  dateOfBirth                DateTime    @map("date_of_birth")
   address                    String
-  stateOfResidence           String    @map("state_of_residence")
+  stateOfResidence           String      @map("state_of_residence")
   country                    String
-  maritalStatus              String    @map("marital_status")
-  salvationStatus            String    @map("salvation_status")
-  salvationStory             String    @map("salvation_story")
-  gogMembershipStatus        Boolean   @map("gog_membership_status")
-  gogMembershipDate          DateTime? @map("gog_membership_date")
-  classCommitmentStatus      Boolean   @map("commitment_status")
-  assignmentCommitmentStatus Boolean   @map("assignment_commitment_status")
-  reasonForJoining           String    @map("reason_for_joining")
-  churchName                 String    @map("church_name")
-  occupation                 String    @map("occupation")
-  profilePicture             String?   @map("profile_picture")
-  createdAt                  DateTime  @default(now()) @map("created_at")
-  updatedAt                  DateTime  @updatedAt @map("updated_at")
-  refereeName                String    @map("referee_name")
-  refereePhoneNumber         String    @map("referee_phone_number")
-  refereeEmail               String    @map("referee_email")
-  refereeRelationship        String    @map("referee_relationship")
-  user                       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  consentCheck               Boolean   @default(false) @map("consent_check")
+  maritalStatus              String      @map("marital_status")
+  salvationStatus            String      @map("salvation_status")
+  salvationStory             String      @map("salvation_story")
+  gogMembershipStatus        Boolean     @map("gog_membership_status")
+  gogMembershipDate          DateTime?   @map("gog_membership_date")
+  classCommitmentStatus      Boolean     @map("commitment_status")
+  assignmentCommitmentStatus Boolean     @map("assignment_commitment_status")
+  reasonForJoining           String      @map("reason_for_joining")
+  churchName                 String      @map("church_name")
+  occupation                 String      @map("occupation")
+  profilePicture             String?     @map("profile_picture")
+  createdAt                  DateTime    @default(now()) @map("created_at")
+  updatedAt                  DateTime    @updatedAt @map("updated_at")
+  refereeName                String      @map("referee_name")
+  refereePhoneNumber         String      @map("referee_phone_number")
+  refereeEmail               String      @map("referee_email")
+  refereeRelationship        String      @map("referee_relationship")
+  user                       User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attendance                 Attendance?
+  consentCheck               Boolean     @default(false) @map("consent_check")
 
   @@map("user_profiles")
 }
@@ -141,14 +142,14 @@ model AcademyTaskType {
 }
 
 model AcademicWeek {
-  id          String   @id @default(uuid())
-  cohortId    String   @map("cohort_id")
-  weekNumber  Int
-  startDate   DateTime @map("start_date")
-  endDate     DateTime @map("end_date")
+  id         String   @id @default(uuid())
+  cohortId   String   @map("cohort_id")
+  weekNumber Int
+  startDate  DateTime @map("start_date")
+  endDate    DateTime @map("end_date")
   // currentWeek Boolean  @default(false)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   dailyTasks DailyTask[]   @relation("WeekTasks") // one-to-many
   cohort     AcademyCohort @relation(fields: [cohortId], references: [id])
@@ -170,6 +171,23 @@ model DailyTask {
 
   academicWeek AcademicWeek    @relation("WeekTasks", fields: [weekId], references: [id])
   taskType     AcademyTaskType @relation("TypeTasks", fields: [taskTypeId], references: [id])
+  attendance   Attendance[]
 
   @@map("daily_task")
+}
+
+model Attendance {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  taskId     String
+  date       DateTime
+  attendedAt DateTime @default(now()) @map("attended_at")
+  marked     Boolean  @default(false)
+  isLate     Boolean  @default(false)
+
+  user UserProfile @relation(fields: [userId], references: [id])
+  task DailyTask   @relation(fields: [taskId], references: [id])
+
+  @@unique([userId, taskId, date])
+  @@map("attendance")
 }

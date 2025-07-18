@@ -3,11 +3,7 @@ import { taskController } from "@/backend/controller/task/task.module";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { NextRequest, NextResponse } from "next/server";
 
-const addCohort = async ({
-  request,
-}: {
-  request: NextRequest
-}): Promise<NextResponse> => {
+const addCohort = async (request: NextRequest): Promise<NextResponse> => {
   try {
     const result = await taskController.createCohort(request);
     return NextResponse.json(

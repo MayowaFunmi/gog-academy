@@ -22,10 +22,10 @@ export class TaskService {
       const dateStarted = new Date(startDate);
       const dateEnded = new Date(endDate);
 
-      if (dateStarted < dateEnded) {
+      if (dateStarted > dateEnded) {
         return {
           status: "error",
-          message: "Start date must be after end date",
+          message: "End date must be after start date",
         };
       }
       const cohort_slug = await generateCohortSlug(cohort, batch);
@@ -78,11 +78,25 @@ export class TaskService {
             createdAt: "desc",
           },
           include: {
-            taskTypes: true,
-            academicWeek: true,
+            taskTypes: false,
+            academicWeek: false,
           },
         }),
       ]);
+
+      const totalUsers = await prisma.userProfile.groupBy({
+        by: ['cohortId'],
+        _count: {
+          cohortId: true
+        }
+      })
+
+      const cohortsWithUserCounts = cohorts.map((cohort) => {
+        const countEntry = totalUsers.find((uc) => uc.cohortId === cohort.id)
+        return {
+          ...cohort, userCount: countEntry?._count.cohortId || 0
+        }
+      })
 
       const totalPages = Math.ceil(totalItems / limit);
       const pagination: PaginationMeta = {
@@ -97,7 +111,7 @@ export class TaskService {
         status: "success",
         message: "Cohorts fetched successfully",
         data: {
-          cohorts,
+          cohorts: cohortsWithUserCounts,
           pagination,
         },
       }

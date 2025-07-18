@@ -1,11 +1,16 @@
 import { mapHttpStatus } from "@/app/utils/mapHttpPresponse";
-import { taskController } from "@/backend/controller/task/task.module";
+import { attendanceController } from "@/backend/controller/attendance/attendance.module";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
+import { User } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-const addWeek = async (request: NextRequest): Promise<NextResponse> => {
+const markAttendance = async (
+  request: NextRequest,
+  context: { user: Promise<User> }
+): Promise<NextResponse> => {
   try {
-    const result = await taskController.createWeek(request);
+    const { id } = await context.user;
+    const result = await attendanceController.markAttendance(request, id);
     return NextResponse.json(
       {
         status: result.status,
@@ -28,4 +33,4 @@ const addWeek = async (request: NextRequest): Promise<NextResponse> => {
   }
 };
 
-export const POST = authMiddleware(addWeek, ["SuperAdmin"]);
+export const POST = authMiddleware(markAttendance, ["Student"])

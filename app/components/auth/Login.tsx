@@ -1,21 +1,21 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Input from "../ui/input";
 import Link from "next/link";
 import Button from "../ui/button";
-import { useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema } from "@/app/schemas/auth/registerSchema";
-import { useLoginUser } from "@/app/hooks/auth";
 import { fail_notify, success_notify } from "@/app/utils/constants";
-import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { LoginFields } from "@/app/types/auth";
+import { signIn } from "next-auth/react";
 
 const Login = () => {
    const router = useRouter()
+   const [loading, setLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -24,35 +24,21 @@ const Login = () => {
     resolver: yupResolver(loginSchema),
   });
 
-  const {
-    mutate: loginUser,
-    isPending,
-    isSuccess,
-    isError,
-    error,
-    reset,
-  } = useLoginUser();
-
-  const onSubmit = (data: LoginFields) => {
-    loginUser(data)
-  }
-
-  useEffect(() => {
-    if (isError) {
-      console.error("User login error:", error);
-      const errorMsg = (error as AxiosError).response?.data?.message;
-      // const errorMsg2 = (error as AxiosError).response?.data?.data?.map(
-      //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      //   (x: any) => x.message
-      // );
-      fail_notify(`${errorMsg}` || "User login error");
-    } else if (isSuccess) {
+  const onSubmit: SubmitHandler<LoginFields> = async (data) => {
+    setLoading(true)
+    const result = await signIn("credentials", {
+      redirect: false,
+      username: data?.username,
+      password: data?.password,
+    })
+    if (result?.ok) {
       success_notify("Login successful");
-      reset();
-      router.push("/");
+      router.push("/redirect");
+    } else {
+      fail_notify("Login failed");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isError, error, isSuccess, reset]);
+    setLoading(false)
+  }
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
@@ -137,7 +123,7 @@ const Login = () => {
 
             <Button
               type="submit"
-              isLoading={isPending}
+              isLoading={loading}
               className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               Sign In

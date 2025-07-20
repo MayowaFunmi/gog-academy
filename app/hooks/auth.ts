@@ -21,3 +21,13 @@ export function useLoginUser() {
     }
   })
 }
+
+export function useSignOutUser() {
+  // const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => apiEndpointCalls.signOut(),
+    // onSuccess: () => {
+    //   queryClient.invalidateQueries({ queryKey: ["getAllUsers"]})
+    // }
+  })
+}

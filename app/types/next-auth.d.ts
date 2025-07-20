@@ -7,7 +7,7 @@ declare module "next-auth" {
       id: string;
       username: string;
       uniqueId: string;
-      matricNumber?: string;
+      matricNumber?: string | null;
       firstName: string;
       lastName: string;
       gender: "Male" | "Female";
@@ -21,5 +21,6 @@ declare module "next-auth" {
       roles: string[];
     };
     token: string;
+    expires: string
   }
 }

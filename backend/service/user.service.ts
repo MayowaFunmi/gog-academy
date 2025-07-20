@@ -165,6 +165,14 @@ export class UserService {
       const [updatedUser] = await prisma.$transaction([
         prisma.user.update({
           where: { id: user.id },
+          include: {
+            roles: {
+              include: {
+                role: true,
+              },
+            },
+            userProfile: true,
+          },
           data: { isActive: true },
         }),
       ]);
@@ -189,6 +197,7 @@ export class UserService {
           user: {
             ...updatedUser,
             password: undefined,
+            roles: updatedUser.roles.map((role) => role.role.name)
           },
           token,
         },

@@ -13,7 +13,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
 
     const baseClasses =
       'px-4 py-2 border w-full rounded-md focus:outline-none focus:ring-opacity-50 transition-all duration-200';
-    const enabledClasses = 'border-gray-400 focus:ring-primary';
+    const enabledClasses = 'border-pink-400 focus:ring-primary';
     const invalidClasses = 'border-red-500 focus:ring-none';
     const disabledClasses = 'border-gray-400 text-gray-200 cursor-not-allowed bg-gray-100';
 

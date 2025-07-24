@@ -22,7 +22,7 @@ const TopNavbar = () => {
   }, [isSuccess]);
 
   return (
-    <div className='shadow-md bg-gray-100 fixed top-0 left-[20%] w-[80%] z-50 px-4 py-3'>
+    <div className='shadow-md bg-white fixed top-0 left-[20%] w-[80%] z-50 px-4 py-3'>
       <div className='w-full flex justify-between items-center'>
         <div className='flex items-center gap-3'>
           <Image src='/assets/images/gog-logo.png' alt='GOG Academy Logo' width={40} height={40} className='rounded-full' />

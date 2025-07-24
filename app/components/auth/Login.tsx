@@ -16,6 +16,8 @@ import { signIn } from "next-auth/react";
 const Login = () => {
    const router = useRouter()
    const [loading, setLoading] = useState(false);
+   const [loginLoading, setLoginLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -33,6 +35,7 @@ const Login = () => {
     })
     if (result?.ok) {
       success_notify("Login successful");
+      setLoginLoading(true)
       router.push("/redirect");
     } else {
       fail_notify("Login failed");
@@ -123,10 +126,10 @@ const Login = () => {
 
             <Button
               type="submit"
-              isLoading={loading}
+              isLoading={loading || loginLoading}
               className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              Sign In
+              {loginLoading ? "Redirecting..." : "Sign In"}
             </Button>
           </form>
 

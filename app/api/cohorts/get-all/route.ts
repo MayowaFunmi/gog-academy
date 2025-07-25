@@ -1,12 +1,12 @@
 import { mapHttpStatus } from "@/app/utils/mapHttpPresponse";
-import { taskController } from "@/backend/controller/task/task.module";
+import { cohortController } from "@/backend/controller/cohort/cohort.module";
 import { NextRequest, NextResponse } from "next/server";
 
 const getAllCohorts = async (request: NextRequest): Promise<NextResponse> => {
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = parseInt(searchParams.get("limit") || "10", 10);
-  const result = await taskController.getAllCohorts(page, limit);
+  const result = await cohortController.getAllCohorts(page, limit);
   return NextResponse.json(
     {
       status: result.status,

@@ -1,5 +1,4 @@
 import {
-  createAcademyCohortSchema,
   createAcademyTaskTypeSchema,
   createAcademyWeekSchema,
   createDailyTaskSchema,
@@ -10,20 +9,6 @@ import { NextRequest } from "next/server";
 
 export class TaskController {
   constructor(private taskService: TaskService) {}
-
-  async createCohort(request: NextRequest): Promise<ApiResponse> {
-    try {
-      const body = await request.json();
-      const validatedData = createAcademyCohortSchema.parse(body);
-      return await this.taskService.createAcademyCohort(validatedData);
-    } catch (error) {
-      console.error("Unhandled controller error:", error);
-      return {
-        status: "error",
-        message: "An unexpected error occurred",
-      };
-    }
-  }
 
   async createTaskType(request: NextRequest): Promise<ApiResponse> {
     try {
@@ -77,9 +62,5 @@ export class TaskController {
         message: "An unexpected error occurred",
       };
     }
-  }
-
-  async getAllCohorts(page = 1, limit = 10) {
-    return await this.taskService.getAllCohorts(page, limit)
   }
 }

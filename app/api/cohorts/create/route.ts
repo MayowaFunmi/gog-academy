@@ -1,11 +1,11 @@
 import { mapHttpStatus } from "@/app/utils/mapHttpPresponse";
-import { taskController } from "@/backend/controller/task/task.module";
+import { cohortController } from "@/backend/controller/cohort/cohort.module";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { NextRequest, NextResponse } from "next/server";
 
 const addCohort = async (request: NextRequest): Promise<NextResponse> => {
   try {
-    const result = await taskController.createCohort(request);
+    const result = await cohortController.createCohort(request);
     return NextResponse.json(
       {
         status: result.status,

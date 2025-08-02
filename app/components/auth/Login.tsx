@@ -12,11 +12,13 @@ import { fail_notify, success_notify } from "@/app/utils/constants";
 import { useRouter } from "next/navigation";
 import { LoginFields } from "@/app/types/auth";
 import { signIn } from "next-auth/react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login = () => {
-   const router = useRouter()
-   const [loading, setLoading] = useState(false);
-   const [loginLoading, setLoginLoading] = useState(false);
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -27,21 +29,21 @@ const Login = () => {
   });
 
   const onSubmit: SubmitHandler<LoginFields> = async (data) => {
-    setLoading(true)
+    setLoading(true);
     const result = await signIn("credentials", {
       redirect: false,
       username: data?.username,
       password: data?.password,
-    })
+    });
     if (result?.ok) {
       success_notify("Login successful");
-      setLoginLoading(true)
+      setLoginLoading(true);
       router.push("/redirect");
     } else {
       fail_notify("Login failed");
     }
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
@@ -102,15 +104,24 @@ const Login = () => {
               >
                 Password
               </label>
-              <Input
-                {...register("password")}
-                type="password"
-                id="password"
-                autoComplete="current-password"
-                required
-                placeholder="Enter Password"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-              />
+              <div className="relative">
+                <Input
+                  {...register("password")}
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  autoComplete="current-password"
+                  required
+                  placeholder="Enter Password"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                />
+                <span
+                  className="absolute right-2 top-2 cursor-pointer text-gray-500"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.password.message}

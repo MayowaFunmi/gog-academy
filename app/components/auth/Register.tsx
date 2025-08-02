@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Input from "../ui/input";
 import Link from "next/link";
@@ -13,9 +13,10 @@ import { useRegisterUser } from "@/app/hooks/auth";
 import { fail_notify, success_notify } from "@/app/utils/constants";
 import type { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Register = () => {
-  const router = useRouter()
+  const router = useRouter();
   const {
     mutate: createUser,
     isPending,
@@ -33,6 +34,9 @@ const Register = () => {
     resolver: yupResolver(createUserSchema),
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const onSubmit = (data: RegisterFields) => {
     // console.log(`data = ${JSON.stringify(data, null, 2)}`);
     createUser(data);
@@ -46,10 +50,10 @@ const Register = () => {
       fail_notify(`${errorMsg}` || "Error creating user");
     } else if (isSuccess) {
       success_notify("User registered successfully");
-      reset()
-      router.push('/auth/login')
+      reset();
+      router.push("/auth/login");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isError, error, isSuccess, reset]);
 
   return (
@@ -252,15 +256,23 @@ const Register = () => {
               >
                 Password
               </label>
-              <Input
-                {...register("password")}
-                type="password"
-                id="password"
-                autoComplete="password"
-                required
-                placeholder="Enter Password"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-              />
+              <div className="relative">
+                <Input
+                  {...register("password")}
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  autoComplete="password"
+                  required
+                  placeholder="Enter Password"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                />
+                <span
+                  className="absolute right-2 top-2 cursor-pointer text-gray-500"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.password.message}
@@ -275,14 +287,24 @@ const Register = () => {
               >
                 Confirm Password
               </label>
-              <input
-                {...register("confirmPassword")}
-                type="password"
-                id="confirm-password"
-                required
-                placeholder="Enter Password Again"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
+
+              <div className="relative">
+                <input
+                  {...register("confirmPassword")}
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirm-password"
+                  required
+                  placeholder="Enter Password Again"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                <span
+                  className="absolute right-2 top-2 cursor-pointer text-gray-500"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+
               {errors.confirmPassword && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.confirmPassword.message}

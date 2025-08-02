@@ -9,10 +9,15 @@ import { AxiosError } from "axios";
 import { fail_notify } from "@/app/utils/constants";
 import PageLoader from "../loader/pageLoader";
 import moment from "moment";
-import { calculateDuration } from "@/app/utils/formatDate";
+import { calculateDuration, getDateStatus } from "@/app/utils/formatDate";
+import Modal from "../ui/Modal";
+import AddCohort from "../cohorts/AddCohort";
+import { FaCircle } from "react-icons/fa6";
 
 const AdminDashboard = () => {
   const [selectedCohortId, setSelectedCohortId] = useState<string>("");
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+
   const {
     data: cohorts,
     isLoading: cohortsLoading,
@@ -34,6 +39,10 @@ const AdminDashboard = () => {
     "bg-yellow-500",
   ];
 
+  const handleCloseModal = () => {
+    setIsOpen(false);
+  };
+
   useEffect(() => {
     if (isCohortsError) {
       console.error("Error fetching cohorts:", cohortsError);
@@ -43,6 +52,10 @@ const AdminDashboard = () => {
       fail_notify(errMsg);
     }
   }, [cohortsError, isCohortsError]);
+  const { isCurrent, isFuture, isPast } = getDateStatus(
+    selectedCohort?.data?.startDate ?? "",
+    selectedCohort?.data?.endDate ?? ""
+  );
 
   useEffect(() => {
     if (isSelectedCohortError) {
@@ -57,18 +70,36 @@ const AdminDashboard = () => {
   return (
     <div className="my-3 px-3">
       <div className="text-2xl font-semibold text-gray-800">Dashboard</div>
-      {cohortsLoading ? // <PageLoader />
-      null : (
+      {cohortsLoading ? null : ( // <PageLoader />
         <div className="w-full mt-5 text-gray-600 border border-t-2 border-t-blue-600 border-x-gray-300 border-b-gray-400 rounded-lg">
-          <div className="flex items-center justify-between p-3 bg-white border-b border-b-gray-300">
+          <div className="flex items-center justify-between px-3 py-1 bg-white border-b border-b-gray-300">
             <p className="font-normal text-sm">Filter</p>
-            <div className="bg-pink-400">
-              <p className="text-white text-normal font-bold px-2 py-1">
-                {`${selectedCohort?.data?.cohort} Batch ${selectedCohort?.data?.batch}`}{" "}
-                |{" "}
-                {new Date(selectedCohort?.data?.startDate ?? "").getFullYear()}
-              </p>
-            </div>
+            {selectedCohort && (
+              <div>
+                <div className="flex items-center justify-center gap-2">
+                  <p className="bg-pink-400 text-white text-normal font-bold px-2 py-1">
+                    {`${selectedCohort?.data?.cohort} Batch ${selectedCohort?.data?.batch}`}{" "}
+                    |{" "}
+                    {new Date(
+                      selectedCohort?.data?.startDate ?? ""
+                    ).getFullYear()}
+                  </p>
+
+                  {isCurrent && (
+                    <FaCircle className="text-green-500" title="Ongoing" />
+                  )}
+                  {isFuture && (
+                    <FaCircle className="text-blue-400" title="Upcoming" />
+                  )}
+                  {isPast && (
+                    <FaCircle className="text-gray-500" title="Completed" />
+                  )}
+                </div>
+                <small>
+                  {isCurrent ? "Current" : isFuture ? "Upcoming" : "Ended"}
+                </small>
+              </div>
+            )}
           </div>
           <div className="w-full flex flex-col space-y-3 p-3 bg-white border-b border-b-gray-300">
             <p className="font-normal text-sm">Cohorts</p>
@@ -77,6 +108,7 @@ const AdminDashboard = () => {
                 value={selectedCohortId}
                 onChange={(e) => setSelectedCohortId(e.target.value)}
                 className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Select a cohort"
               >
                 <option value="" disabled>
                   Select a cohort
@@ -89,11 +121,11 @@ const AdminDashboard = () => {
               </Select>
             </div>
             <div className="md:w-1/4 w-full flex items-center justify-center space-x-2 pb-2">
-              <Button className="md:w-full w-1/2 rounded-md bg-pink-600 px-4 py-2 text-white font-medium hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500">
-                Apply Filter
-              </Button>
-              <Button className="md:w-full w-1/2 rounded-md bg-gray-300 px-4 py-2 text-gray-700 font-medium hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                Reset Filter
+              <Button
+                className="md:w-full w-1/2 rounded-md bg-pink-600 px-4 py-2 text-white font-medium hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                onClick={() => setIsOpen(true)}
+              >
+                Add new cohort
               </Button>
             </div>
           </div>
@@ -120,9 +152,9 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <div className="absolute top-0 right-0 p-2 flex flex-col items-end gap-4">
-                      <Button className="bg-pink-400 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                      {/* <Button className="bg-pink-400 text-white text-xs font-semibold px-2 py-1 rounded-md">
                         View Details
-                      </Button>
+                      </Button> */}
                       <FaUsers
                         className="text-gray-200"
                         size={50}
@@ -144,9 +176,9 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <div className="absolute top-0 right-0 p-2 flex flex-col items-end gap-4">
-                      <Button className="bg-pink-400 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                      {/* <Button className="bg-pink-400 text-white text-xs font-semibold px-2 py-1 rounded-md">
                         View Details
-                      </Button>
+                      </Button> */}
                       <FaUser
                         className="text-gray-200"
                         size={50}
@@ -179,9 +211,9 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <div className="absolute top-0 right-0 p-2 flex flex-col items-end gap-4">
-                      <Button className="bg-pink-400 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                      {/* <Button className="bg-pink-400 text-white text-xs font-semibold px-2 py-1 rounded-md">
                         View Details
-                      </Button>
+                      </Button> */}
                       <FaCalendarAlt
                         className="text-gray-200"
                         size={50}
@@ -207,9 +239,9 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <div className="absolute top-0 right-0 p-2 flex flex-col items-end gap-4">
-                      <Button className="bg-pink-400 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                      {/* <Button className="bg-pink-400 text-white text-xs font-semibold px-2 py-1 rounded-md">
                         View Details
-                      </Button>
+                      </Button> */}
                       <FaClock
                         className="text-gray-200"
                         size={50}
@@ -222,6 +254,16 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {isOpen && (
+        <Modal
+          isOpen={isOpen}
+          closeModal={handleCloseModal}
+          title="Add New Cohort"
+        >
+          <AddCohort closeModal={handleCloseModal} />
+        </Modal>
       )}
     </div>
   );

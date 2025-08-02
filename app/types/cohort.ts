@@ -59,12 +59,26 @@ export interface CohortDetails {
   endDate: string;
   createdAt: string;
   updatedAt: string;
-  taskTypes: TaskType[];
-  academicWeek: AcademicWeek[];
-  userCount: number;
+  taskTypes?: TaskType[];
+  academicWeek?: AcademicWeek[];
+  userCount?: number;
 }
 
 export interface SingleCohortResponse {
+  status: string;
+  message: string;
+  data: CohortDetails;
+}
+
+
+export interface CohortFormData {
+  cohort: string;
+  batch: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface AddCohortResponse {
   status: string;
   message: string;
   data: CohortDetails;

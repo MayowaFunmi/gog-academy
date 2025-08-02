@@ -7,6 +7,12 @@ import {
 } from "date-fns";
 import { parseISO } from "date-fns/parseISO";
 
+export interface CourseDateStatus {
+  isCurrent: boolean
+  isFuture: boolean
+  isPast: boolean
+}
+
 export const calculateDuration = (startDate: string, endDate: string) => {
   if (startDate && endDate) {
     const start = parseISO(startDate);
@@ -33,3 +39,16 @@ export const calculateDuration = (startDate: string, endDate: string) => {
     return durationText;
   }
 };
+
+
+export function getDateStatus(startDate: string, endDate: string): CourseDateStatus {
+  const now = new Date();
+  const start = parseISO(startDate);
+  const end = parseISO(endDate);
+
+  return {
+    isCurrent: now >= start && now <= end,
+    isFuture: now < start,
+    isPast: now > end,
+  };
+}

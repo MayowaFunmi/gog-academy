@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+/* Add to your global CSS if Tailwind doesn't override calendar CSS */
+.fc .fc-multimonth-month {
+  padding: 0.25rem;
+  font-size: 0.75rem;
+}
+.fc .fc-daygrid-day {
+  height: 2rem;
+  width: 2rem;
+  padding: 0.25rem;
+}
+.fc .fc-daygrid-day-number {
+  font-size: 0.75rem;
+}

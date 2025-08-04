@@ -26,3 +26,10 @@ export function useAddCohort() {
     }
   })
 }
+
+export function useGetCurrentCohort() {
+  return useQuery({
+    queryKey: ["CurrentCohort"],
+    queryFn: () => apiEndpointCalls.getCurrentCohort()
+  })
+}

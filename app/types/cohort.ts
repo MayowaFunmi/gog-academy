@@ -83,3 +83,9 @@ export interface AddCohortResponse {
   message: string;
   data: CohortDetails;
 }
+
+export interface ActiveCohortResponse {
+  status: string;
+  message: string;
+  data: Cohort;
+}

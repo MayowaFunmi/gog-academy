@@ -1,6 +1,6 @@
 import { AuthResponse, LoginFields, RegisterFields } from "@/app/types/auth";
 import { apiClient } from "./application";
-import { AddCohortResponse, CohortFormData, CohortsResponse, SingleCohortResponse } from "@/app/types/cohort";
+import { ActiveCohortResponse, AddCohortResponse, CohortFormData, CohortsResponse, SingleCohortResponse } from "@/app/types/cohort";
 
 const signIn = async (data: LoginFields): Promise<AuthResponse> => {
   try {
@@ -63,13 +63,24 @@ const addCohort = async (data: CohortFormData): Promise<AddCohortResponse> => {
   }
 }
 
+const getCurrentCohort = async (): Promise<ActiveCohortResponse> => {
+  try {
+    const response = await apiClient.get("/api/cohorts/active");
+    return response.data as ActiveCohortResponse;
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+}
+
 const apiEndpointCalls = {
   signIn,
   signUp,
   addCohort,
   signOut,
   getAllCohorts,
-  getCohortById
+  getCohortById,
+  getCurrentCohort
 };
 
 export default apiEndpointCalls;

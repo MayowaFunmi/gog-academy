@@ -52,6 +52,7 @@ const AdminDashboard = () => {
       fail_notify(errMsg);
     }
   }, [cohortsError, isCohortsError]);
+
   const { isCurrent, isFuture, isPast } = getDateStatus(
     selectedCohort?.data?.startDate ?? "",
     selectedCohort?.data?.endDate ?? ""
@@ -148,7 +149,7 @@ const AdminDashboard = () => {
                       </h3>
                       {/* total cohorts  */}
                       <div className="flex items-center gap-2 text-white text-2xl font-bold">
-                        <span>{cohorts?.data?.pagination?.totalItems}</span>
+                        <span>{cohorts?.data?.cohorts?.length || cohorts?.data?.pagination?.totalItems}</span>
                       </div>
                     </div>
                     <div className="absolute top-0 right-0 p-2 flex flex-col items-end gap-4">

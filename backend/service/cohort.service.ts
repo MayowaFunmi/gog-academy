@@ -56,22 +56,27 @@ export class CohortService {
   }
 
   async getAllCohorts(
-    page: number = 1,
-    limit: number = 10
+    page?: number,
+    limit?: number
   ): Promise<
     ApiResponse<{
       cohorts: AcademyCohort[];
       totalUsers: number;
-      pagination: PaginationMeta;
+      pagination?: PaginationMeta;
     }>
   > {
     try {
-      const skip = (page - 1) * limit;
+      const isPaginated = typeof page === "number" && typeof limit === "number";
+
       const [totalItems, cohorts] = await prisma.$transaction([
         prisma.academyCohort.count(),
         prisma.academyCohort.findMany({
-          skip,
-          take: limit,
+          ...(isPaginated
+            ? {
+                skip: (page - 1) * limit,
+                take: limit,
+              }
+            : {}),
           orderBy: {
             createdAt: "desc",
           },
@@ -97,26 +102,28 @@ export class CohortService {
         };
       });
 
-      const totalPages = Math.ceil(totalItems / limit);
-      const pagination: PaginationMeta = {
-        totalItems,
-        totalPages,
-        currentPage: page,
-        pageSize: limit,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-      };
+      const pagination = isPaginated
+        ? {
+            totalItems,
+            totalPages: Math.ceil(totalItems / limit),
+            currentPage: page,
+            pageSize: limit,
+            hasNextPage: page < Math.ceil(totalItems / limit),
+            hasPreviousPage: page > 1,
+          }
+        : undefined;
+
       return {
         status: "success",
         message: "Cohorts fetched successfully",
         data: {
           cohorts: cohortsWithUserCounts,
           totalUsers: totalUsers.length,
-          pagination,
+          ...(pagination ? { pagination } : {}),
         },
       };
     } catch (error) {
-      console.error("Error logging in user:", error);
+      console.error("Error fetching cohorts:", error);
       return {
         status: "error",
         message: "An unexpected error occurred",
@@ -149,6 +156,31 @@ export class CohortService {
         status: "success",
         message: "Cohort fetched successfully",
         data: { ...cohort, userCount: totalUsers },
+      };
+    } catch (error) {
+      console.error("Error fetching cohort:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+
+  async getCurrentCohort(): Promise<ApiResponse> {
+    try {
+      const cohort = await prisma.academyCohort.findFirst({
+        where: { startDate: { lte: new Date() }, endDate: { gte: new Date() } },
+      });
+      if (!cohort) {
+        return {
+          status: "notFound",
+          message: "No active cohort found",
+        };
+      }
+      return {
+        status: "success",
+        message: "Current cohort fetched successfully",
+        data: cohort,
       };
     } catch (error) {
       console.error("Error fetching cohort:", error);

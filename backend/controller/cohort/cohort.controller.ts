@@ -20,7 +20,7 @@ export class CohortController {
     }
   }
 
-  async getAllCohorts(page = 1, limit = 10) {
+  async getAllCohorts(page?: number, limit?: number) {
     return await this.cohortService.getAllCohorts(page, limit);
   }
 
@@ -34,5 +34,9 @@ export class CohortController {
         message: "An unexpected error occurred",
       };
     }
+  }
+
+  async getCurrentCohort(): Promise<ApiResponse> {
+    return await this.cohortService.getCurrentCohort();
   }
 }

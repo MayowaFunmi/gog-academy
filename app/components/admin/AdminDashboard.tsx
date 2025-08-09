@@ -13,10 +13,12 @@ import { calculateDuration, getDateStatus } from "@/app/utils/formatDate";
 import Modal from "../ui/Modal";
 import AddCohort from "../cohorts/AddCohort";
 import { FaCircle } from "react-icons/fa6";
+import AddTaskTypes from "../tasks/AddTaskTypes";
 
 const AdminDashboard = () => {
   const [selectedCohortId, setSelectedCohortId] = useState<string>("");
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isTaskOpen, setIsTaskOpen] = useState<boolean>(false);
 
   const {
     data: cohorts,
@@ -42,6 +44,10 @@ const AdminDashboard = () => {
   const handleCloseModal = () => {
     setIsOpen(false);
   };
+
+  const handleTaskCloseModal = () => {
+    setIsTaskOpen(false);
+  }
 
   useEffect(() => {
     if (isCohortsError) {
@@ -121,13 +127,22 @@ const AdminDashboard = () => {
                 ))}
               </Select>
             </div>
-            <div className="md:w-1/4 w-full flex items-center justify-center space-x-2 pb-2">
+            <div className="w-full flex flex-col lg:flex-row items-start justify-start space-x-2 space-y-2 pb-2">
               <Button
-                className="md:w-full w-1/2 rounded-md bg-pink-600 px-4 py-2 text-white font-medium hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                className="w-1/2 rounded-md bg-pink-600 px-4 py-2 text-white font-medium hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
                 onClick={() => setIsOpen(true)}
               >
                 Add new cohort
               </Button>
+
+              {selectedCohort && (
+                <Button
+                  className="w-1/2 rounded-md bg-pink-600 px-4 py-2 text-white font-medium hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  onClick={() => setIsTaskOpen(true)}
+                >
+                  Add task categories to {selectedCohort?.data?.cohort} Batch {selectedCohort?.data?.batch}
+                </Button>
+              )}
             </div>
           </div>
 
@@ -264,6 +279,16 @@ const AdminDashboard = () => {
           title="Add New Cohort"
         >
           <AddCohort closeModal={handleCloseModal} />
+        </Modal>
+      )}
+
+      {isTaskOpen && (
+        <Modal
+          isOpen={isTaskOpen}
+          closeModal={handleTaskCloseModal}
+          title="Add New Task Category"
+        >
+          <AddTaskTypes cohortId={selectedCohortId} closeModal={handleTaskCloseModal} />
         </Modal>
       )}
     </div>

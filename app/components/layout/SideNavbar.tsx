@@ -52,7 +52,7 @@ const SidebarNav = () => {
                   className={`
                   flex items-center gap-3 p-2 rounded-md
                   hover:bg-blue-100 transition-colors duration-150
-                  ${pathname === item.link ? "bg-blue-100 font-semibold" : ""}
+                  ${(item.link && (pathname === item.link || pathname.startsWith(item.link))) ? "bg-blue-100 font-semibold" : ""}
                 `}
                 >
                   <item.icon className="text-xl" />

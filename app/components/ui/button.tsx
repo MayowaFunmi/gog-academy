@@ -18,10 +18,10 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      className={classNames(
+      className={`hover:cursor-pointer ${classNames(
         !disabled && !isLoading ? enabledClasses : disabledClasses,
         className
-      )}
+      )}`}
       disabled={disabled || isLoading}
       {...props}
     >

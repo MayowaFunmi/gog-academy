@@ -2,7 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { ApiResponse } from "../types/apiResponse";
 
 export function slugify(text: string) {
-  return text.toLowerCase().trim().replace(/\s+/g, "-");
+  const slug = text.toLowerCase().trim().replace(/\s+/g, "-");
+  const randomNum = Math.floor(100 + Math.random() * 900);
+  return `${slug}-${randomNum}`;
 }
 
 export async function generateCohortSlug(
@@ -18,7 +20,7 @@ export async function generateCohortSlug(
     if (existing) {
       return {
         status: "conflict",
-        message: "",
+        message: "Cohort name and batch already exists",
       };
     }
 

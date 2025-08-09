@@ -6,7 +6,7 @@ import { CalendarDay } from "@/app/types/calendar";
 interface CalendarRangeSplitProps {
   startDate: Date;
   endDate: Date;
-  selectedWeekRange?: { start: Date; end: Date };
+  selectedWeekRange: { start: Date; end: Date } | null;
 }
 
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -58,7 +58,7 @@ export const CalendarRangeSplit: React.FC<CalendarRangeSplitProps> = ({
             </div>
 
             <div
-              className={`grid grid-cols-7 gap-[2px] text-[11px]`}
+              className={`grid grid-cols-7 gap-[3px] text-xs`}
               style={{
                 // Fixed grid height: maxWeeks * 2rem (32px)
                 minHeight: `${maxWeeks * 2.25}rem`,
@@ -79,7 +79,7 @@ export const CalendarRangeSplit: React.FC<CalendarRangeSplitProps> = ({
                 return (
                   <div
                     key={i}
-                    className={`h-8 w-8 flex items-center justify-center rounded-sm text-sm
+                    className={`h-8 w-8 flex items-center justify-center rounded-sm text-xs p-[2px]
                       ${
                         day.isPlaceholder
                           ? "invisible"

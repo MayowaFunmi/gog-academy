@@ -26,10 +26,14 @@ export const createDailyTaskSchema = z.object({
   title: z.string().optional(),
   taskTypeId: z.string({ required_error: "Task type id cannot be null" }),
   description: z.string({ required_error: "description cannot be null" }),
+  taskLink: z.string().optional(),
+  taskScriptures: z.string().optional(),
   weekId: z.string({ required_error: "week id cannot be null" }),
-  startDay: z.string().datetime({ message: "Invalid start day." }),
-  endDay: z.string().datetime({ message: "Invalid end day." }),
-  activated: z.boolean({ required_error: "state if daily task is activated" }),
+  dayOfWeek: z.number({ required_error: "day of week is required" }),
+  startTime: z.string().datetime({ message: "Invalid start Time." }),
+  endTime: z.string().datetime({ message: "Invalid end Time." }),
+  hasExtension: z.boolean().optional(),
+  activated: z.boolean().optional(),
 });
 
 export type CreateAcademyCohortDto = z.infer<typeof createAcademyCohortSchema>;

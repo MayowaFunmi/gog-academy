@@ -158,16 +158,20 @@ model AcademicWeek {
 }
 
 model DailyTask {
-  id          String   @id @default(uuid())
-  title       String?
-  taskTypeId  String
-  description String
-  weekId      String
-  startDay    DateTime @map("start_day")
-  endDay      DateTime @map("end_day")
-  activated   Boolean
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(uuid())
+  title          String?
+  taskTypeId     String
+  description    String
+  weekId         String
+  taskLink       String?  @map("task_link")
+  taskScriptures String?  @map("task_scriptures")
+  dayOfWeek      Int      @map("day_of_week")
+  startTime      DateTime @map("start_time")
+  endTime        DateTime @map("end_time")
+  hasExtension   Boolean  @default(false) @map("has_extension")
+  activated      Boolean  @default(false)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   academicWeek AcademicWeek    @relation("WeekTasks", fields: [weekId], references: [id])
   taskType     AcademyTaskType @relation("TypeTasks", fields: [taskTypeId], references: [id])

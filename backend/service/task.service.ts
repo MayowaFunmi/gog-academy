@@ -6,7 +6,9 @@ import {
 } from "../dto/task.dto";
 import { ApiResponse } from "../types/apiResponse";
 import { slugify } from "../utils/slugify";
-import { differenceInDays } from "date-fns";
+import { addDays, differenceInDays } from "date-fns";
+import { removeHour } from "../utils/dateFormat";
+import { AcademicWeek, AcademyTaskType } from "@prisma/client";
 
 export class TaskService {
   constructor() {}
@@ -66,6 +68,7 @@ export class TaskService {
     }
   }
 
+  // added to creating coohort
   async createNewWeek(data: CreateAcademyWeekDto): Promise<ApiResponse> {
     try {
       const { cohortId, weekNumber, startDate, endDate } = data;
@@ -133,10 +136,32 @@ export class TaskService {
     }
   }
 
+  async getCohortWeeks(cohortId: string): Promise<ApiResponse<AcademicWeek[]>> {
+    try {
+      const cohortWeeks = await prisma.academicWeek.findMany({
+        where: { cohortId }
+      });
+      return {
+        status: "success",
+        message: "Cohort weeks retrieved successfully",
+        data: cohortWeeks,
+      };
+    } catch (error) {
+      console.error("Error logging out user:", error);
+
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+        data: null,
+      };
+    }    
+  }
+
   async createDailyTask(data: CreateDailyTaskDto): Promise<ApiResponse> {
     try {
-      const { taskTypeId, description, weekId, startDay, endDay, activated } =
+      const { title, dayOfWeek, taskTypeId, description, taskLink, taskScriptures, weekId, startTime, endTime, hasExtension, activated } =
         data;
+      // console.log({ title, dayOfWeek, taskTypeId, description, taskLink, taskScriptures, weekId, startTime, endTime, hasExtension, activated });
 
       const taskType = await prisma.academyTaskType.findUnique({
         where: { id: taskTypeId },
@@ -160,8 +185,10 @@ export class TaskService {
         };
       }
 
-      const start = new Date(startDay);
-      const end = new Date(endDay);
+      const start = removeHour(new Date(startTime));
+      const end = removeHour(new Date(endTime));
+
+      // console.log({ start, end });
 
       if (start > end || start < week.startDate || end > week.endDate) {
         return {
@@ -170,15 +197,28 @@ export class TaskService {
         };
       }
 
+      const correctStart = addDays(week.startDate, dayOfWeek - 1);
+      // console.log({ correctStart });
+      if (start < correctStart || end < correctStart) {
+        return {
+          status: "error",
+          message: "check the start date and/or end date",
+        };
+      }
+
       const createdTask = await prisma.$transaction(async (tx) => {
         const newTask = await tx.dailyTask.create({
           data: {
-            title: taskType.name,
+            title: title ? title : taskType.name,
             taskTypeId,
             description,
+            taskLink,
+            taskScriptures,
             weekId,
-            startDay,
-            endDay,
+            dayOfWeek,
+            startTime: start,
+            endTime: end,
+            hasExtension,
             activated,
           },
         });
@@ -230,6 +270,27 @@ export class TaskService {
         status: "success",
         message: "Task activated successfully",
         data: updatedTask,
+      };
+    } catch (error) {
+      console.error("Error logging out user:", error);
+
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+        data: null,
+      };
+    }
+  }
+
+  async getAllTaskTypes(cohortId: string): Promise<ApiResponse<AcademyTaskType[]>> {
+    try {
+      const taskTypes = await prisma.academyTaskType.findMany({
+        where: { cohortId },
+      });
+      return {
+        status: "success",
+        message: "Task categories retrieved successfully",
+        data: taskTypes,
       };
     } catch (error) {
       console.error("Error logging out user:", error);

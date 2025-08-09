@@ -1,11 +1,14 @@
 import { mapHttpStatus } from "@/app/utils/mapHttpPresponse";
 import { taskController } from "@/backend/controller/task/task.module";
-import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { NextRequest, NextResponse } from "next/server";
 
-const addDailyTask = async (request: NextRequest): Promise<NextResponse> => {
+const getCohortWeeks = async (
+  request: NextRequest,
+  context: { params: Promise<{ cohortId: string }> }
+): Promise<NextResponse> => {
   try {
-    const result = await taskController.createDailyTask(request);
+    const { cohortId } = await context.params;
+    const result = await taskController.getCohortWeeks(cohortId);
     return NextResponse.json(
       {
         status: result.status,
@@ -28,4 +31,4 @@ const addDailyTask = async (request: NextRequest): Promise<NextResponse> => {
   }
 };
 
-export const POST = authMiddleware(addDailyTask, ["SuperAdmin"]);
+export const GET = getCohortWeeks;

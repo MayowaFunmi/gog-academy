@@ -89,3 +89,9 @@ export interface ActiveCohortResponse {
   message: string;
   data: Cohort;
 }
+
+export interface CohortWeeksResponse {
+  status: string
+  message: string
+  data: AcademicWeek[]
+}

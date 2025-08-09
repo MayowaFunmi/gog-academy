@@ -3,6 +3,8 @@ import { CreateAcademyCohortDto } from "../dto/task.dto";
 import { ApiResponse, PaginationMeta } from "../types/apiResponse";
 import { generateCohortSlug } from "../utils/slugify";
 import { AcademyCohort } from "@prisma/client";
+import { addHour, setEndOfDay, setStartOfDay } from "../utils/dateFormat";
+import { addDays, isBefore, isSameDay } from "date-fns";
 
 export class CohortService {
   constructor() {}
@@ -13,8 +15,8 @@ export class CohortService {
     try {
       const { cohort, batch, startDate, endDate } = data;
 
-      const dateStarted = new Date(startDate);
-      const dateEnded = new Date(endDate);
+      const dateStarted = setStartOfDay(new Date(startDate));
+      const dateEnded = setEndOfDay(new Date(endDate));
 
       if (dateStarted > dateEnded) {
         return {
@@ -31,17 +33,45 @@ export class CohortService {
         const newCohort = await tx.academyCohort.create({
           data: {
             cohort,
-            batch,
+            batch: batch.trim().toUpperCase(),
             slug: String(cohort_slug?.data),
-            startDate,
-            endDate,
+            startDate: dateStarted,
+            endDate: dateEnded,
           },
         });
-        return newCohort;
+
+        // generate academic weeks for this cohort
+        let currentStart = dateStarted;
+        const finalEnd = dateEnded;
+        const academicWeeksData = [];
+
+        let weekNumber = 1;
+
+        while (isBefore(currentStart, finalEnd) || isSameDay(currentStart, finalEnd)) {
+          const rawEnd = addDays(currentStart, 6);
+          const currentEnd = rawEnd > finalEnd ? finalEnd : rawEnd;
+          academicWeeksData.push({
+            cohortId: newCohort.id,
+            startDate: setStartOfDay(currentStart),
+            endDate: setEndOfDay(currentEnd),
+            weekNumber,
+          });
+          currentStart = addDays(currentStart, 7);
+          weekNumber++;
+        }
+
+        await tx.academicWeek.createMany({
+          data: academicWeeksData,
+        })
+        return {
+          ...newCohort, startDate: dateStarted, endDate: dateEnded,
+        };
       });
+
+      // create academic weeks for this cohort there
       return {
         status: "success",
-        message: "Cohort created successfully",
+        message: "Cohort and academic weeks created successfully",
         data: createdCohort,
       };
     } catch (error) {
@@ -155,7 +185,17 @@ export class CohortService {
       return {
         status: "success",
         message: "Cohort fetched successfully",
-        data: { ...cohort, userCount: totalUsers },
+        data: { 
+          ...cohort, 
+          startDate: addHour(cohort.startDate),
+          endDate: addHour(cohort.endDate),
+          academicWeek: cohort?.academicWeek?.map((week) => ({
+            ...week,
+            startDate: addHour(week.startDate),
+            endDate: addHour(week.endDate),
+          })),
+          userCount: totalUsers 
+        },
       };
     } catch (error) {
       console.error("Error fetching cohort:", error);

@@ -1,11 +1,14 @@
 import { mapHttpStatus } from "@/app/utils/mapHttpPresponse";
 import { taskController } from "@/backend/controller/task/task.module";
-import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { NextRequest, NextResponse } from "next/server";
 
-const addCategory = async (request: NextRequest): Promise<NextResponse> => {
+const getAllTaskTypes = async (
+  request: NextRequest,
+  context: { params: Promise<{ cohortId: string }> }
+): Promise<NextResponse> => {
   try {
-    const result = await taskController.createTaskType(request);
+    const { cohortId } = await context.params;
+    const result = await taskController.getTaskTypes(cohortId);
     return NextResponse.json(
       {
         status: result.status,
@@ -17,15 +20,15 @@ const addCategory = async (request: NextRequest): Promise<NextResponse> => {
       }
     );
   } catch (error) {
-    console.error("Error adding task category:", error);
+    console.error("Error during logout:", error);
     return NextResponse.json(
       {
         status: "error",
-        message: "An unexpected error occurred while adding task category...",
+        message: "An unexpected error occurred during logout",
       },
       { status: 500 }
     );
   }
 };
 
-export const POST = authMiddleware(addCategory, ["SuperAdmin"])
+export const GET = getAllTaskTypes;

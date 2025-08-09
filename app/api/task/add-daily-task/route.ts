@@ -3,9 +3,9 @@ import { taskController } from "@/backend/controller/task/task.module";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { NextRequest, NextResponse } from "next/server";
 
-const addCategory = async (request: NextRequest): Promise<NextResponse> => {
+const addDailyTask = async (request: NextRequest): Promise<NextResponse> => {
   try {
-    const result = await taskController.createTaskType(request);
+    const result = await taskController.createDailyTask(request);
     return NextResponse.json(
       {
         status: result.status,
@@ -17,15 +17,15 @@ const addCategory = async (request: NextRequest): Promise<NextResponse> => {
       }
     );
   } catch (error) {
-    console.error("Error adding task category:", error);
+    console.error("Error adding daily task:", error);
     return NextResponse.json(
       {
         status: "error",
-        message: "An unexpected error occurred while adding task category...",
+        message: "An unexpected error occurred while adding daily task...",
       },
       { status: 500 }
     );
   }
 };
 
-export const POST = authMiddleware(addCategory, ["SuperAdmin"])
+export const POST = authMiddleware(addDailyTask, ["SuperAdmin"]);

@@ -38,6 +38,18 @@ export class TaskController {
     }
   }
 
+  async getCohortWeeks(cohortId: string): Promise<ApiResponse> {
+    try {
+      return await this.taskService.getCohortWeeks(cohortId);
+    } catch (error) {
+      console.error("Unhandled controller error:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+
   async createDailyTask(request: NextRequest): Promise<ApiResponse> {
     try {
       const body = await request.json();
@@ -55,6 +67,18 @@ export class TaskController {
   async updateTaskActivation(taskId: string): Promise<ApiResponse> {
     try {
       return await this.taskService.activateDailyTask(taskId);
+    } catch (error) {
+      console.error("Unhandled controller error:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+
+  async getTaskTypes(cohortId: string): Promise<ApiResponse> {
+    try {
+      return await this.taskService.getAllTaskTypes(cohortId);
     } catch (error) {
       console.error("Unhandled controller error:", error);
       return {

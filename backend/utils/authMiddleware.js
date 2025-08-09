@@ -40,7 +40,7 @@ export function authMiddleware(handler, allowedRoles = []) {
     } catch (error) {
       console.error("Authentication error:", error);
       return NextResponse.json(
-        { error: "Authentication failed" },
+        { error: "Authentication failed..." },
         { status: 401 }
       );
     }

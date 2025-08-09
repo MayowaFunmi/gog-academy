@@ -33,3 +33,11 @@ export function useGetCurrentCohort() {
     queryFn: () => apiEndpointCalls.getCurrentCohort()
   })
 }
+
+export function useGetCohortWeeks(cohortId: string) {
+  return useQuery({
+    queryKey: ["CurrentCohortWeeks", cohortId],
+    queryFn: () => apiEndpointCalls.getCohortWeeks(cohortId),
+    enabled: !!cohortId
+  })
+}

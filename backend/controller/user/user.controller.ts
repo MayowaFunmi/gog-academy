@@ -108,4 +108,8 @@ export class UserController {
   async getUserById(userId: string): Promise<ApiResponse> {
     return await this.userService.getUserById(userId)
   }
+
+  async getActiveUsers(): Promise<ApiResponse> {
+    return await this.userService.getActiveUsers()
+  }
 }

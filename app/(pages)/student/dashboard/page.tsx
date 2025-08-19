@@ -1,8 +1,11 @@
+import StudentEntryPage from '@/app/components/student/StudentEntryPage'
 import React from 'react'
 
 const StudentDashboardPage = () => {
   return (
-    <div>StudentDashboardPage</div>
+    <div>
+      <StudentEntryPage />
+    </div>
   )
 }
 

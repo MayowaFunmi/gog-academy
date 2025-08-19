@@ -1,3 +1,5 @@
+import { AcademicWeek } from "./cohort";
+
 export interface TaskType {
     id: string;
     cohortId: string;
@@ -62,14 +64,40 @@ export interface DailyTask {
   dayOfWeek: number;
   startTime: string;
   endTime: string;
+  taskLink?: string;
+  taskScriptures?: string;
   hasExtension: boolean;
   activated: boolean;
   createdAt: string;
   updatedAt: string;
+  academicWeek?: AcademicWeek
+  taskType?: TaskType
+  attendance?: TaskAttendance[]
 }
 
 export interface DailyTaskResponse {
   status: string;
   message: string;
   data: DailyTask;
+}
+
+export interface WeeklyTasksResponse {
+  status: string
+  message: string
+  data: DailyTask[]
+}
+
+export interface TaskStatusUpdateResponse {
+  status: string
+  message: string
+}
+
+export interface TaskAttendance {
+  id: string
+  userId: string
+  taskId: string
+  date: string
+  attendanceAt: string
+  marked: boolean
+  isLate: boolean
 }

@@ -8,7 +8,7 @@ import { ApiResponse } from "../types/apiResponse";
 import { slugify } from "../utils/slugify";
 import { addDays, differenceInDays } from "date-fns";
 import { removeHour } from "../utils/dateFormat";
-import { AcademicWeek, AcademyTaskType } from "@prisma/client";
+import { AcademicWeek, AcademyTaskType, DailyTask } from "@prisma/client";
 
 export class TaskService {
   constructor() {}
@@ -139,7 +139,7 @@ export class TaskService {
   async getCohortWeeks(cohortId: string): Promise<ApiResponse<AcademicWeek[]>> {
     try {
       const cohortWeeks = await prisma.academicWeek.findMany({
-        where: { cohortId }
+        where: { cohortId },
       });
       return {
         status: "success",
@@ -154,13 +154,24 @@ export class TaskService {
         message: "An unexpected error occurred",
         data: null,
       };
-    }    
+    }
   }
 
   async createDailyTask(data: CreateDailyTaskDto): Promise<ApiResponse> {
     try {
-      const { title, dayOfWeek, taskTypeId, description, taskLink, taskScriptures, weekId, startTime, endTime, hasExtension, activated } =
-        data;
+      const {
+        title,
+        dayOfWeek,
+        taskTypeId,
+        description,
+        taskLink,
+        taskScriptures,
+        weekId,
+        startTime,
+        endTime,
+        hasExtension,
+        activated,
+      } = data;
       // console.log({ title, dayOfWeek, taskTypeId, description, taskLink, taskScriptures, weekId, startTime, endTime, hasExtension, activated });
 
       const taskType = await prisma.academyTaskType.findUnique({
@@ -240,36 +251,29 @@ export class TaskService {
     }
   }
 
-  async activateDailyTask(taskId: string): Promise<ApiResponse> {
+  async getTasksForWeek(weekId: string): Promise<ApiResponse<DailyTask[]>> {
     try {
-      const taskExists = await prisma.dailyTask.findUnique({
-        where: { id: taskId },
+      const tasks = await prisma.dailyTask.findMany({
+        where: { weekId },
+        include: {
+          academicWeek: true,
+          taskType: true,
+        },
+        orderBy: {
+          dayOfWeek: "asc",
+        },
       });
-      if (!taskExists) {
+      
+      if (tasks.length === 0) {
         return {
           status: "notFound",
-          message: "Task not found",
+          message: "Task not found for this week",
         };
       }
-
-      if (taskExists.activated) {
-        return {
-          status: "bad_request",
-          message: "Task is already active",
-        };
-      }
-
-      const updatedTask = await prisma.$transaction(async (tx) => {
-        return tx.dailyTask.update({
-          where: { id: taskId },
-          data: { activated: true },
-        });
-      });
-
       return {
         status: "success",
-        message: "Task activated successfully",
-        data: updatedTask,
+        message: `Daily task created successfully`,
+        data: tasks,
       };
     } catch (error) {
       console.error("Error logging out user:", error);
@@ -282,7 +286,47 @@ export class TaskService {
     }
   }
 
-  async getAllTaskTypes(cohortId: string): Promise<ApiResponse<AcademyTaskType[]>> {
+  async activateDailyTask(taskId: string): Promise<ApiResponse> {
+    try {
+      const taskExists = await prisma.dailyTask.findUnique({
+        where: { id: taskId },
+      });
+      if (!taskExists) {
+        return {
+          status: "notFound",
+          message: "Task not found",
+        };
+      }
+
+      const updatedTask = await prisma.$transaction(async (tx) => {
+        return tx.dailyTask.update({
+          where: { id: taskId },
+          data: { activated: taskExists.activated ? false : true },
+        });
+      });
+
+      const message = updatedTask.activated
+        ? "Task activated successfully"
+        : "Task deactivated successfully";
+
+      return {
+        status: "success",
+        message: message,
+        // data: updatedTask,
+      };
+    } catch (error) {
+      console.error("Error logging out user:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+        data: null,
+      };
+    }
+  }
+
+  async getAllTaskTypes(
+    cohortId: string
+  ): Promise<ApiResponse<AcademyTaskType[]>> {
     try {
       const taskTypes = await prisma.academyTaskType.findMany({
         where: { cohortId },
@@ -291,6 +335,30 @@ export class TaskService {
         status: "success",
         message: "Task categories retrieved successfully",
         data: taskTypes,
+      };
+    } catch (error) {
+      console.error("Error logging out user:", error);
+
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+        data: null,
+      };
+    }
+  }
+
+  async getTaskById(taskId: string): Promise<ApiResponse<DailyTask>> {
+    try {
+      const task = await prisma.dailyTask.findUnique({
+        where: { id: taskId },
+        include: {
+          attendance: true
+        }
+      })
+      return {
+        status: "success",
+        message: "Daily Task details retrieved successfully",
+        data: task,
       };
     } catch (error) {
       console.error("Error logging out user:", error);

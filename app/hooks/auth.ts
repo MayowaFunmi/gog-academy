@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiEndpointCalls from "../utils/apiCalls/apiEndpointCalls";
 import { LoginFields, RegisterFields } from "../types/auth";
 
@@ -23,11 +23,14 @@ export function useLoginUser() {
 }
 
 export function useSignOutUser() {
-  // const queryClient = useQueryClient()
   return useMutation({
     mutationFn: () => apiEndpointCalls.signOut(),
-    // onSuccess: () => {
-    //   queryClient.invalidateQueries({ queryKey: ["getAllUsers"]})
-    // }
+  })
+}
+
+export function useGetActiveUsers() {
+  return useQuery({
+    queryKey: ["ActiveUsers"],
+    queryFn: () => apiEndpointCalls.getActiveUsers()
   })
 }

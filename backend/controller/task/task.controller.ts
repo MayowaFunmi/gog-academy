@@ -64,6 +64,14 @@ export class TaskController {
     }
   }
 
+  async getWeeklyTasks(weekId: string): Promise<ApiResponse> {
+    return await this.taskService.getTasksForWeek(weekId)
+  }
+
+  async getTaskDetail(taskId: string): Promise<ApiResponse> {
+    return await this.taskService.getTaskById(taskId)
+  }
+
   async updateTaskActivation(taskId: string): Promise<ApiResponse> {
     try {
       return await this.taskService.activateDailyTask(taskId);

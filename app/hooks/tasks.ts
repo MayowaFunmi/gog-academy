@@ -25,7 +25,33 @@ export function useAddDailyTask() {
   return useMutation({
     mutationFn: (data: DailyTaskFormData) => apiEndpointCalls.addDailyTask(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["GetAllDailyTasks"]})
+      queryClient.invalidateQueries({ queryKey: ["GetWeeklyTasks"]})
     }
+  })
+}
+
+export function useUpdateTaskStatus() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (taskId: string) => apiEndpointCalls.updateTaskStatus(taskId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["GetWeeklyTasks"]})
+    }
+  })
+}
+
+export function useGetWeeklyTasks(weekId: string) {
+  return useQuery({
+    queryKey: ["GetWeeklyTasks", weekId],
+    queryFn: () => apiEndpointCalls.getWeeklyTasks(weekId),
+    enabled: !!weekId
+  })
+}
+
+export function useGetTaskById(taskId: string) {
+  return useQuery({
+    queryKey: ["GetTaskDetails", taskId],
+    queryFn: () => apiEndpointCalls.getTaskById(taskId),
+    enabled: !!taskId
   })
 }

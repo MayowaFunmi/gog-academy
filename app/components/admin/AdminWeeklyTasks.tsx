@@ -1,17 +1,22 @@
 "use client";
 
 import { formatDateRange, removeHour } from "@/app/utils/formatDate";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Button from "../ui/button";
 import DailyTask from "./DailyTask";
 import Modal from "../ui/Modal";
+import { useGetWeeklyTasks } from "@/app/hooks/tasks";
+import { AxiosError } from "axios";
+import { fail_notify } from "@/app/utils/constants";
+import WeeklyTasks from "../tasks/WeeklyTasks";
+import BackButton from "../ui/BackButton";
 
 interface AdminWeeklyTasksProps {
   weekNumber: number;
   startDate: string;
   endDate: string;
   cohortId: string;
-  weekId: string
+  weekId: string;
 }
 
 const AdminWeeklyTasks = ({
@@ -19,7 +24,7 @@ const AdminWeeklyTasks = ({
   startDate,
   endDate,
   cohortId,
-  weekId
+  weekId,
 }: AdminWeeklyTasksProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -27,8 +32,28 @@ const AdminWeeklyTasks = ({
     setIsOpen(false);
   };
 
+  const {
+    data: weeklyTasks,
+    isLoading: tasksLoading,
+    isError: isTasksError,
+    error: tasksError,
+  } = useGetWeeklyTasks(weekId);
+
+  useEffect(() => {
+    if (isTasksError) {
+      console.error("Error fetching task categories:", tasksError);
+      const errMsg =
+        (tasksError as AxiosError).response?.data?.message ||
+        "An error occurred while fetching task categories.";
+      fail_notify(errMsg);
+    }
+  }, [tasksError, isTasksError]);
+
   return (
     <div className="mt-3 px-3">
+      <div className="mb-3">
+        <BackButton />
+      </div>
       <div className="text-2xl font-semibold text-gray-800">
         Tasks for Week {weekNumber}
       </div>
@@ -46,6 +71,17 @@ const AdminWeeklyTasks = ({
             </Button>
           </div>
         </div>
+      </div>
+
+      <div className="my-3">
+        {tasksLoading && <p>Weekly tasks loading, please wait ...</p>}
+        {weeklyTasks &&
+        weeklyTasks.status === "success" &&
+        weeklyTasks.data.length ? (
+          <WeeklyTasks tasksResponse={weeklyTasks} />
+        ) : (
+          <p>This week&apos;s tasks not found</p>
+        )}
       </div>
 
       {isOpen && (

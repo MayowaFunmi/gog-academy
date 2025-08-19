@@ -29,8 +29,38 @@ export interface User {
   roles: string[]
 }
 
+export interface UserProfile {
+  id: string;
+  cohortId: string;
+  userId: string;
+  title: string;
+  dateOfBirth: string;
+  address: string;
+  stateOfResidence: string;
+  country: string;
+  maritalStatus: string;
+  salvationStatus: string;
+  salvationStory: string;
+  gogMembershipStatus: boolean;
+  gogMembershipDate: string;
+  classCommitmentStatus: boolean;
+  assignmentCommitmentStatus: boolean;
+  reasonForJoining: string;
+  churchName: string;
+  occupation: string;
+  profilePicture: string;
+  createdAt: string;
+  updatedAt: string;
+  refereeName: string;
+  refereePhoneNumber: string;
+  refereeEmail: string;
+  refereeRelationship: string;
+  consentCheck: boolean;
+}
+
 export interface UserDataResponse {
   user: User;
+  userProfile?: UserProfile
   accessToken: string;
 }
 
@@ -58,4 +88,10 @@ export interface RegisterFields {
 export interface LoginFields {
   username: string
   password: string
+}
+
+export interface ActiveUserResponse {
+  status: string
+  message: string
+  data: User[]
 }

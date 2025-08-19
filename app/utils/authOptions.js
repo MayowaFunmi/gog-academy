@@ -21,6 +21,7 @@ export const authOptions = {
           if (response.status === "success") {
             return {
               ...response.data.user,
+              userProfile: response.data.user.userProfile ?? null,
               accessToken: response.data.token, // <-- this is critical
             };
           } else {
@@ -62,6 +63,7 @@ export const authOptions = {
           lastLogin: user.lastLogin,
           roles: user.roles,
           accessToken: user.accessToken,
+          userProfile: user.userProfile ?? null
         };
       }
       // console.log(`token after: ${JSON.stringify(token, null, 2)}`);
@@ -85,6 +87,7 @@ export const authOptions = {
         isActive: token.isActive,
         lastLogin: token.lastLogin,
         roles: token.roles,
+        userProfile: token.userProfile ?? null
       };
       session.token = token.accessToken;
       return session;

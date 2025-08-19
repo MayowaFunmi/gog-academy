@@ -47,7 +47,7 @@ const AdminDashboard = () => {
 
   const handleTaskCloseModal = () => {
     setIsTaskOpen(false);
-  }
+  };
 
   useEffect(() => {
     if (isCohortsError) {
@@ -140,7 +140,8 @@ const AdminDashboard = () => {
                   className="w-1/2 rounded-md bg-pink-600 px-4 py-2 text-white font-medium hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
                   onClick={() => setIsTaskOpen(true)}
                 >
-                  Add task categories to {selectedCohort?.data?.cohort} Batch {selectedCohort?.data?.batch}
+                  Add task categories to {selectedCohort?.data?.cohort} Batch{" "}
+                  {selectedCohort?.data?.batch}
                 </Button>
               )}
             </div>
@@ -164,7 +165,10 @@ const AdminDashboard = () => {
                       </h3>
                       {/* total cohorts  */}
                       <div className="flex items-center gap-2 text-white text-2xl font-bold">
-                        <span>{cohorts?.data?.cohorts?.length || cohorts?.data?.pagination?.totalItems}</span>
+                        <span>
+                          {cohorts?.data?.cohorts?.length ||
+                            cohorts?.data?.pagination?.totalItems}
+                        </span>
                       </div>
                     </div>
                     <div className="absolute top-0 right-0 p-2 flex flex-col items-end gap-4">
@@ -214,15 +218,19 @@ const AdminDashboard = () => {
                       <div className="flex flex-col items-center gap-2 text-white text-sm font-bold">
                         <span>
                           Start:{" "}
-                          {moment(selectedCohort?.data?.startDate).format(
-                            "MMM D, YYYY"
-                          )}
+                          {selectedCohort?.data?.startDate
+                            ? moment(selectedCohort.data.startDate).format(
+                                "MMM D, YYYY"
+                              )
+                            : "—"}
                         </span>
                         <span>
                           End:{" "}
-                          {moment(selectedCohort?.data?.endDate).format(
-                            "MMM D, YYYY"
-                          )}
+                          {selectedCohort?.data?.endDate
+                            ? moment(selectedCohort.data.endDate).format(
+                                "MMM D, YYYY"
+                              )
+                            : "—"}
                         </span>
                       </div>
                     </div>
@@ -288,7 +296,10 @@ const AdminDashboard = () => {
           closeModal={handleTaskCloseModal}
           title="Add New Task Category"
         >
-          <AddTaskTypes cohortId={selectedCohortId} closeModal={handleTaskCloseModal} />
+          <AddTaskTypes
+            cohortId={selectedCohortId}
+            closeModal={handleTaskCloseModal}
+          />
         </Modal>
       )}
     </div>

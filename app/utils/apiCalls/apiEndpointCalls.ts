@@ -1,7 +1,8 @@
-import { AuthResponse, LoginFields, RegisterFields } from "@/app/types/auth";
+import { ActiveUserResponse, AuthResponse, LoginFields, RegisterFields } from "@/app/types/auth";
 import { apiClient } from "./application";
 import { ActiveCohortResponse, AddCohortResponse, CohortFormData, CohortsResponse, CohortWeeksResponse, SingleCohortResponse } from "@/app/types/cohort";
-import { DailyTaskFormData, DailyTaskResponse, GetCohortTaskTypesResponse, TaskTypeFormData, TaskTypeResponse } from "@/app/types/task";
+import { DailyTaskFormData, DailyTaskResponse, GetCohortTaskTypesResponse, TaskStatusUpdateResponse, TaskTypeFormData, TaskTypeResponse, WeeklyTasksResponse } from "@/app/types/task";
+import { UserResponse } from "@/app/types/user";
 
 const signIn = async (data: LoginFields): Promise<AuthResponse> => {
   try {
@@ -104,10 +105,60 @@ const addDailyTask = async (data: DailyTaskFormData): Promise<DailyTaskResponse>
   }
 }
 
+const getTaskById = async (taskId: string): Promise<DailyTaskResponse> => {
+  try {
+    const response = await apiClient.get(`/api/task/${taskId}`);
+    return response.data as DailyTaskResponse;
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+}
+
 const getCohortWeeks = async (cohortId: string): Promise<CohortWeeksResponse> => {
   try {
     const response = await apiClient.get(`/api/cohorts/cohort/${cohortId}/get-weeks`);
     return response.data as CohortWeeksResponse;
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+}
+
+const getWeeklyTasks = async (weekId: string): Promise<WeeklyTasksResponse> => {
+  try {
+    const response = await apiClient.get(`/api/task/get-weekly-tasks/${weekId}`);
+    return response.data as WeeklyTasksResponse;
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+}
+
+const updateTaskStatus = async (taskId: string): Promise<TaskStatusUpdateResponse> => {
+try {
+    const response = await apiClient.patch(`/api/task/update-status/${taskId}`);
+    return response.data as TaskStatusUpdateResponse;
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+}
+
+const getActiveUsers = async (): Promise<ActiveUserResponse> => {
+  try {
+    const response = await apiClient.get(`/api/auth/active-users`);
+    return response.data as ActiveUserResponse;
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+}
+
+const getUserMe = async (): Promise<UserResponse> => {
+  try {
+    const response = await apiClient.get(`/api/user/me`);
+    return response.data as UserResponse;
   } catch (error) {
     console.error("API error:", error);
     throw error;
@@ -125,7 +176,12 @@ const apiEndpointCalls = {
   addTaskCategory,
   addDailyTask,
   getCohortTaskCategories,
-  getCohortWeeks
+  getCohortWeeks,
+  getWeeklyTasks,
+  updateTaskStatus,
+  getTaskById,
+  getActiveUsers,
+  getUserMe
 };
 
 export default apiEndpointCalls;

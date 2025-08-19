@@ -86,13 +86,14 @@ model UserProfile {
   title                      Title
   dateOfBirth                DateTime    @map("date_of_birth")
   address                    String
-  stateOfResidence           String      @map("state_of_residence")
+  stateOfResidence           String?     @default("") @map("state_of_residence")
   country                    String
   maritalStatus              String      @map("marital_status")
   salvationStatus            String      @map("salvation_status")
   salvationStory             String      @map("salvation_story")
   gogMembershipStatus        Boolean     @map("gog_membership_status")
-  gogMembershipDate          DateTime?   @map("gog_membership_date")
+  previouslyApplied          Boolean     @map("previously_applied")
+  gogMembershipYear          String?     @map("gog_membership_date")
   classCommitmentStatus      Boolean     @map("commitment_status")
   assignmentCommitmentStatus Boolean     @map("assignment_commitment_status")
   reasonForJoining           String      @map("reason_for_joining")

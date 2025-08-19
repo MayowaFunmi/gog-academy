@@ -441,4 +441,23 @@ export class UserService {
       };
     }
   }
+
+  async getActiveUsers(): Promise<ApiResponse<User[]>> {
+    try {
+      const users = await prisma.user.findMany({
+        where: { isActive: true }
+      })
+      return {
+        status: "success",
+        message: "Active Users fetched successfully",
+        data: users
+      }
+    } catch (error) {
+      console.error("Error logging in user:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
+  }
 }

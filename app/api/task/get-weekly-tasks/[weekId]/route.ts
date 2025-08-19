@@ -2,23 +2,23 @@ import { taskController } from "@/backend/controller/task/task.module";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { NextRequest, NextResponse } from "next/server";
 
-const taskById = async (
+const weeklyTasks = async (
   request: NextRequest,
-  context: { params: Promise<{ taskId: string }> }
+  context: { params: Promise<{ weekId: string }> }
 ): Promise<NextResponse> => {
   try {
-    const { taskId } = await context.params;
-    if (!taskId) {
+    const { weekId } = await context.params;
+    if (!weekId) {
       return NextResponse.json(
         {
           status: "bad_request",
-          message: "Task Id cannot be empty",
+          message: "Week Id cannot be empty",
         },
         { status: 500 }
       );
     }
-    const apiResponse = await taskController.getTaskDetail(taskId)
-    return NextResponse.json(apiResponse)
+    const apiResponse = await taskController.getWeeklyTasks(weekId);
+    return NextResponse.json(apiResponse);
   } catch (error) {
     console.error("Error:", error);
     return NextResponse.json(
@@ -31,4 +31,4 @@ const taskById = async (
   }
 };
 
-export const GET = authMiddleware(taskById)
+export const GET = authMiddleware(weeklyTasks);

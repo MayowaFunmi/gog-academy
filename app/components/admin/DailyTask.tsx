@@ -109,7 +109,7 @@ const DailyTask = ({
       endTime: addHour(setEndTime).toISOString(),
       activated: data.activated,
     };
-    console.log(`data = ${JSON.stringify(payload, null, 2)}`);
+    // console.log(`data = ${JSON.stringify(payload, null, 2)}`);
     addTask(payload);
   };
 
@@ -181,7 +181,7 @@ const DailyTask = ({
           )}
         </div>
 
-        <div>
+        {/* <div>
           <label
             htmlFor="title"
             className="block text-sm font-medium text-gray-700"
@@ -200,7 +200,7 @@ const DailyTask = ({
           {errors.title && (
             <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>
           )}
-        </div>
+        </div> */}
 
         <div>
           <Controller

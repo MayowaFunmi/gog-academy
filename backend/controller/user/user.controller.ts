@@ -101,6 +101,10 @@ export class UserController {
     }
   }
 
+  async getUserProfile(userId: string): Promise<ApiResponse> {
+    return await this.userService.getUserProfile(userId)
+  }
+
   async getAllUsers(page = 1, limit = 10) {
     return await this.userService.getAllUsers(page, limit)
   }

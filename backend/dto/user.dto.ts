@@ -49,8 +49,7 @@ export const userProfileSchema = z.object({
       required_error: "Cohort id is required",
     }),
   dateOfBirth: z
-    .string()
-    .datetime({ message: "Invalid date." }),
+    .string({ message: "Invalid date." }),
   address: z
     .string({
       required_error: "Address is required",
@@ -70,9 +69,9 @@ export const userProfileSchema = z.object({
     required_error: "Your GOG mmbership status is required",
     invalid_type_error: "GOG mmbership status must be a boolean",
   }),
-  gogMembershipDate: z
+  gogMembershipYear: z
     .string()
-    .datetime({ message: "Invalid date." }),
+    .min(1, { message: "GOG membership year is required" }),
   classCommitmentStatus: z
     .boolean({
     required_error: "You must agree to commit yourself to attending GOG academy classes",

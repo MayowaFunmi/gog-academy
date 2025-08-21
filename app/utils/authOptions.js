@@ -30,8 +30,7 @@ export const authOptions = {
         } catch (error) {
           console.error("error occurred: ", error);
           throw new Error(
-            `error occurred: ${
-              error instanceof Error ? error.message : String(error)
+            `error occurred: ${error instanceof Error ? error.message : String(error)
             }`
           );
         }
@@ -42,7 +41,7 @@ export const authOptions = {
     signIn: "/auth/login",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       // console.log(`token before: ${JSON.stringify(token, null, 2)}`);
       // console.log(`user before: ${JSON.stringify(user, null, 2)}`);
       if (user) {
@@ -57,6 +56,7 @@ export const authOptions = {
           gender: user.gender,
           email: user.email,
           phoneNumber: user.phoneNumber,
+          profileStrength: user.profileStrength,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
           isActive: user.isActive,
@@ -65,6 +65,15 @@ export const authOptions = {
           accessToken: user.accessToken,
           userProfile: user.userProfile ?? null
         };
+      }
+
+      if (trigger === "update") {
+        try {
+          const response = await apiEndpointCalls.getUserById(token.id)
+          token.userProfile = response.data.userProfile ?? null;
+        } catch (error) {
+          console.error("Failed to refresh profile:", error);
+        }
       }
       // console.log(`token after: ${JSON.stringify(token, null, 2)}`);
       // console.log(`user after: ${JSON.stringify(user, null, 2)}`);
@@ -82,6 +91,7 @@ export const authOptions = {
         gender: token.gender,
         email: token.email,
         phoneNumber: token.phoneNumber,
+        profileStrength: token.profileStrength,
         createdAt: token.createdAt,
         updatedAt: token.updatedAt,
         isActive: token.isActive,

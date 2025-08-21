@@ -2,19 +2,20 @@
 
 import {
   bioDataSchema,
+  consentSchema,
   membershipSchema,
   referenceSchema,
   salvationSchema,
 } from "@/app/schemas/user/userProfileSchema";
 import {
-  BioData,
-  MembershipData,
-  ReferenceData,
-  SalvationData,
+  LOCAL_STORAGE_KEYS,
+  ProfileForm,
   SelectInputOption,
+  STEP_FIELDS,
+  STEP_KEYS,
 } from "@/app/types/user";
 import { yupResolver } from "@hookform/resolvers/yup";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { AnyObjectSchema } from "yup";
 import Input from "../ui/input";
@@ -23,26 +24,27 @@ import SearchSelect from "../ui/SearchSelect";
 import { statesData } from "@/app/utils/statesData";
 import SelectForm from "../forms/SelectForm";
 import RichText from "../ui/RichText";
-
-export const LOCAL_STORAGE_KEYS = {
-  bioData: "profile_bioData",
-  salvationData: "profile_salvationData",
-  membershipData: "profile_membershipData",
-  referenceData: "profile_referenceData",
-};
-
-interface ProfileForm
-  extends BioData,
-    SalvationData,
-    MembershipData,
-    ReferenceData {}
+import ProfilePreview from "./ProfilePreview";
+import { useGetCurrentCohort } from "@/app/hooks/cohorts";
+import { useCreateUserProfile } from "@/app/hooks/user";
+import { fail_notify, success_notify } from "@/app/utils/constants";
+import { AxiosError } from "axios";
+import Button from "../ui/button";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const CreateStudentProfile = () => {
-  // console.log(`countries = ${JSON.stringify(countries, null, 2)}`)
-  const [selectedCountry, setSelectedCountry] = useState<string>("");
-  const [salvationStatus, setSalvationStatus] = useState<string>("");
-  const [content, setContent] = useState<string>("");
-  const [reason, setReason] = useState<string>("");
+  const router = useRouter();
+  const { data: currentCohort } = useGetCurrentCohort();
+  const { update } = useSession();
+
+  const {
+    mutate: createUserProfile,
+    isPending: isCreatePending,
+    isError: isCreateError,
+    error: createError,
+    isSuccess: createSuccess,
+  } = useCreateUserProfile();
 
   const allCountries: SelectInputOption[] = Object.entries(countries).map(
     ([code, details]) => ({
@@ -86,19 +88,12 @@ const CreateStudentProfile = () => {
     "Honourable",
   ];
 
-  const handleContentChange = useCallback((value: string) => {
-    setContent(value);
-  }, []);
-
-  const handleReasonChange = useCallback((value: string) => {
-    setReason(value);
-  }, []);
-
   const userProfileSchemas: AnyObjectSchema[] = [
     bioDataSchema,
     salvationSchema,
     membershipSchema,
     referenceSchema,
+    consentSchema,
   ] as const;
 
   type profileSchema = (typeof userProfileSchemas)[number];
@@ -111,40 +106,26 @@ const CreateStudentProfile = () => {
   const {
     register,
     handleSubmit,
-    setValue,
+    watch,
     control,
     reset,
     getValues,
     formState: { errors },
   } = methods;
 
-  const STEP_KEYS: Record<number, keyof typeof LOCAL_STORAGE_KEYS> = {
-    0: "bioData",
-    1: "salvationData",
-    2: "membershipData",
-    3: "referenceData",
-  };
-
-  const STEP_FIELDS: Record<number, (keyof ProfileForm)[]> = {
-    0: ["title", "dateOfBirth", "address", "stateOfResidence", "country", "maritalStatus", "occupation"],
-    1: ["salvationStatus", "salvationStory"],
-    2: ["gogMembershipStatus", "gogMembershipDate", "previouslyApplied", "classCommitmentStatus", "assignmentCommitmentStatus", "reasonForJoining", "churchName"],
-    3: ["refereeName", "refereePhoneNumber", "refereeEmail", "refereeRelationship", "consentCheck"]
-  }
-
   const saveToStorage = (data: Partial<ProfileForm>) => {
-    const key = STEP_KEYS[step]
-    if (!key) return
-    const stepFields = STEP_FIELDS[step]
+    const key = STEP_KEYS[step];
+    if (!key) return;
+    const stepFields = STEP_FIELDS[step];
     const stepData = stepFields.reduce((acc, field) => {
       if (field in data) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (acc as any)[field] = data[field]
+        (acc as any)[field] = data[field];
       }
-      return acc
-    }, {} as Partial<ProfileForm>)
+      return acc;
+    }, {} as Partial<ProfileForm>);
 
-    localStorage.setItem(LOCAL_STORAGE_KEYS[key], JSON.stringify(stepData))
+    localStorage.setItem(LOCAL_STORAGE_KEYS[key], JSON.stringify(stepData));
   };
 
   const loadProfileData = () => {
@@ -160,68 +141,106 @@ const CreateStudentProfile = () => {
     const referenceData = JSON.parse(
       localStorage.getItem(LOCAL_STORAGE_KEYS.referenceData) || "{}"
     );
+    const consentData = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_KEYS.consentData) || "{}"
+    );
 
     return {
       ...bioData,
       ...salvationData,
       ...membershipData,
       ...referenceData,
+      ...consentData,
     };
   };
 
   const loadFromStorage = (): Partial<ProfileForm> => {
     const key = STEP_KEYS[step];
-    if (!key) return {}
+    if (!key) return {};
 
-    const raw = localStorage.getItem(LOCAL_STORAGE_KEYS[key])
-    if (!raw) return {}
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEYS[key]);
+    if (!raw) return {};
 
     try {
-      const parsed = JSON.parse(raw)
-      const stepFields = STEP_FIELDS[step]
+      const parsed = JSON.parse(raw);
+      const stepFields = STEP_FIELDS[step];
       return stepFields.reduce((acc, field) => {
-      if (field in parsed) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (acc as any)[field] = parsed[field];
-      }
-      return acc;
-    }, {} as Partial<ProfileForm>);
+        if (field in parsed) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (acc as any)[field] = parsed[field];
+        }
+        return acc;
+      }, {} as Partial<ProfileForm>);
     } catch {
-      return {}
+      return {};
     }
-  }
+  };
 
   const onSubmit: SubmitHandler<ProfileForm> = async (data) => {
     saveToStorage(data);
 
     if (step < steps.length - 1) {
       // move to next section
-      setStep(step + 1);
+      setStep((prev) => prev + 1);
     } else {
       const finalData = loadProfileData();
       console.log(`profile = ${JSON.stringify(finalData, null, 2)}`);
+      const payload = {
+        ...finalData,
+        cohortId: currentCohort?.data?.id,
+      };
+      createUserProfile(payload);
     }
   };
 
-  // const stepByStepSubmit = () => {};
+  const country = watch("country");
+  const statusOfSalvation = watch("salvationStatus");
+
+  const { data: session } = useSession();
 
   useEffect(() => {
-    const savedData = loadFromStorage()
-    reset(savedData)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reset])
-
-  useEffect(() => {
-    if (content) {
-      setValue("salvationStory", content);
+    if (session?.user?.userProfile) {
+      router.push("/student/profile-view");
     }
-  }, [content, setValue]);
+  }, [router, session?.user?.userProfile]);
 
   useEffect(() => {
-    if (reason) {
-      setValue("reasonForJoining", reason);
+    const savedData = loadFromStorage();
+    reset(savedData);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reset, step]);
+
+  useEffect(() => {
+    if (isCreateError) {
+      console.error("Error fetching cohorts:", createError);
+      const errMsg =
+        (createError as AxiosError).response?.data?.message ||
+        "An error occurred while fetching cohorts.";
+      fail_notify(errMsg);
     }
-  }, [reason, setValue]);
+
+    if (currentCohort?.status === "notFound") {
+      fail_notify("Current cohort not found");
+    }
+  }, [currentCohort?.status, createError, isCreateError]);
+
+  useEffect(() => {
+    if (createSuccess) {
+      success_notify("Profile created successfully!");
+
+      update()
+        .then(() => {
+          Object.values(LOCAL_STORAGE_KEYS).forEach((key) => {
+            localStorage.removeItem(key);
+          });
+          router.push("/student/dashboard");
+        })
+        .catch((err) => {
+          console.error("Error updating session:", err);
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createSuccess, router]);
 
   return (
     <div className="my-3 px-3 w-full">
@@ -242,7 +261,7 @@ const CreateStudentProfile = () => {
         ))}
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xl mx-auto">
+      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-3xl mx-auto">
         <form onSubmit={handleSubmit(onSubmit)}>
           {step === 0 && (
             <div className="space-y-5">
@@ -253,32 +272,6 @@ const CreateStudentProfile = () => {
                 register={register}
                 error={errors.title}
               />
-              {/* <div>
-                <label
-                  htmlFor="title"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Title
-                </label>
-                <select
-                  {...register("title")}
-                  id="title"
-                  required
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                  <option value="">Select a title</option>
-                  {userTitles.map((title, index) => (
-                    <option key={index} value={title}>
-                      {title}
-                    </option>
-                  ))}
-                </select>
-                {errors.title && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.title.message}
-                  </p>
-                )}
-              </div> */}
 
               <div>
                 <label
@@ -339,11 +332,13 @@ const CreateStudentProfile = () => {
                   render={({ field }) => (
                     <SearchSelect
                       options={allCountries}
-                      value={selectedCountry}
-                      onChange={(e) => {
-                        setSelectedCountry(String(e));
-                        field.onChange(e);
-                      }}
+                      value={field.value || ""}
+                      onChange={(val) => field.onChange(val)}
+                      // value={selectedCountry}
+                      // onChange={(e) => {
+                      //   setSelectedCountry(String(e));
+                      //   field.onChange(e);
+                      // }}
                       placeHolder="Choose a country"
                     />
                   )}
@@ -355,7 +350,7 @@ const CreateStudentProfile = () => {
                 )}
               </div>
 
-              {selectedCountry.includes("Nigeria") && (
+              {country?.includes("Nigeria") && (
                 <div>
                   <label
                     htmlFor="stateOfResidence"
@@ -369,8 +364,9 @@ const CreateStudentProfile = () => {
                     control={control}
                     render={({ field }) => (
                       <SearchSelect
+                        {...field}
                         options={nigerianStates}
-                        value={getValues("stateOfResidence")}
+                        value={getValues("stateOfResidence") ?? ""}
                         onChange={(e) => field.onChange(e)}
                         placeHolder="Choose a state"
                       />
@@ -425,8 +421,6 @@ const CreateStudentProfile = () => {
                 options={["Yes", "No", "Not Sure", "Undecided"]}
                 register={register}
                 error={errors.salvationStatus}
-                value={salvationStatus}
-                onChange={(e) => setSalvationStatus(e.target.value)}
               />
 
               <div>
@@ -439,11 +433,14 @@ const CreateStudentProfile = () => {
                         htmlFor="title"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Tell us about your choice above
+                        {statusOfSalvation === "Yes"
+                          ? "Tell us about your salvation story"
+                          : "Tell us about your doubts"}
                       </label>
                       <RichText
-                        value={content}
-                        setValue={handleContentChange}
+                        {...field}
+                        value={field.value || ""}
+                        setValue={(val) => field.onChange(val)}
                         onBlur={field.onBlur}
                       />
                       {errors.salvationStory && (
@@ -467,44 +464,59 @@ const CreateStudentProfile = () => {
                 >
                   Are you a member of Gospel of Grace Outreach?
                 </label>
-                <select
-                  {...register("gogMembershipStatus", {
-                    setValueAs: (val) => val === "true",
-                  })}
-                  id="gogMembershipStatus"
-                  required
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                  <option value="">Select One</option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
-                </select>
-                {errors.gogMembershipStatus && (
+                <Controller
+                  name="gogMembershipStatus"
+                  control={control}
+                  render={({ field }) => (
+                    <select
+                      {...field}
+                      id="gogMembershipStatus"
+                      required
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      value={
+                        field.value === true
+                          ? "true"
+                          : field.value === false
+                          ? "false"
+                          : ""
+                      }
+                      onChange={(e) =>
+                        field.onChange(e.target.value === "true")
+                      }
+                    >
+                      <option value="">Select One</option>
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </select>
+                  )}
+                />
+
+                {errors.assignmentCommitmentStatus && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.gogMembershipStatus.message}
+                    {errors.assignmentCommitmentStatus.message}
                   </p>
                 )}
               </div>
 
               <div>
                 <label
-                  htmlFor="gogMembershipDate"
+                  htmlFor="gogMembershipYear"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Which year did you join Gospel of Grace Outreach?
                 </label>
                 <Input
-                  {...register("gogMembershipDate")}
+                  {...register("gogMembershipYear")}
                   type="text"
-                  id="gogMembershipDate"
-                  autoComplete="gogMembershipDate"
+                  id="gogMembershipYear"
+                  autoComplete="gogMembershipYear"
                   required
                   className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
                   placeholder="Enter year"
                 />
-                {errors.gogMembershipDate && (
+                {errors.gogMembershipYear && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.gogMembershipDate.message}
+                    {errors.gogMembershipYear.message}
                   </p>
                 )}
               </div>
@@ -516,18 +528,32 @@ const CreateStudentProfile = () => {
                 >
                   Have you previously applied to or attended this academy?
                 </label>
-                <select
-                  {...register("previouslyApplied", {
-                    setValueAs: (val) => val === "true",
-                  })}
-                  id="previouslyApplied"
-                  required
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                  <option value="">Select One</option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
-                </select>
+                <Controller
+                  name="previouslyApplied"
+                  control={control}
+                  render={({ field }) => (
+                    <select
+                      {...field}
+                      id="previouslyApplied"
+                      required
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      value={
+                        field.value === true
+                          ? "true"
+                          : field.value === false
+                          ? "false"
+                          : ""
+                      }
+                      onChange={(e) =>
+                        field.onChange(e.target.value === "true")
+                      }
+                    >
+                      <option value="">Select One</option>
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </select>
+                  )}
+                />
                 {errors.previouslyApplied && (
                   <p className="text-red-500 text-xs mt-1">
                     {errors.previouslyApplied.message}
@@ -543,18 +569,33 @@ const CreateStudentProfile = () => {
                   Do you commit to attend all classes (online and physical) at
                   the scheduled time?
                 </label>
-                <select
-                  {...register("classCommitmentStatus", {
-                    setValueAs: (val) => val === "true",
-                  })}
-                  id="classCommitmentStatus"
-                  required
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                  <option value="">Select One</option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
-                </select>
+
+                <Controller
+                  name="classCommitmentStatus"
+                  control={control}
+                  render={({ field }) => (
+                    <select
+                      {...field}
+                      id="classCommitmentStatus"
+                      required
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      value={
+                        field.value === true
+                          ? "true"
+                          : field.value === false
+                          ? "false"
+                          : ""
+                      }
+                      onChange={(e) =>
+                        field.onChange(e.target.value === "true")
+                      }
+                    >
+                      <option value="">Select One</option>
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </select>
+                  )}
+                />
                 {errors.classCommitmentStatus && (
                   <p className="text-red-500 text-xs mt-1">
                     {errors.classCommitmentStatus.message}
@@ -569,18 +610,32 @@ const CreateStudentProfile = () => {
                 >
                   Do you commit to do all assignments given by the facilitators?
                 </label>
-                <select
-                  {...register("assignmentCommitmentStatus", {
-                    setValueAs: (val) => val === "true",
-                  })}
-                  id="assignmentCommitmentStatus"
-                  required
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                  <option value="">Select One</option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
-                </select>
+                <Controller
+                  name="assignmentCommitmentStatus"
+                  control={control}
+                  render={({ field }) => (
+                    <select
+                      {...field}
+                      id="assignmentCommitmentStatus"
+                      required
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      value={
+                        field.value === true
+                          ? "true"
+                          : field.value === false
+                          ? "false"
+                          : ""
+                      }
+                      onChange={(e) =>
+                        field.onChange(e.target.value === "true")
+                      }
+                    >
+                      <option value="">Select One</option>
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </select>
+                  )}
+                />
                 {errors.assignmentCommitmentStatus && (
                   <p className="text-red-500 text-xs mt-1">
                     {errors.assignmentCommitmentStatus.message}
@@ -601,8 +656,11 @@ const CreateStudentProfile = () => {
                         Tell us why you are applying into GOG Academy
                       </label>
                       <RichText
-                        value={reason}
-                        setValue={handleReasonChange}
+                        {...field}
+                        value={field.value || ""}
+                        setValue={(val) => field.onChange(val)}
+                        // value={reason}
+                        // setValue={handleReasonChange}
                         onBlur={field.onBlur}
                       />
                       {errors.reasonForJoining && (
@@ -720,7 +778,7 @@ const CreateStudentProfile = () => {
                 </label>
                 <Input
                   {...register("refereeRelationship")}
-                  type="email"
+                  type="text"
                   id="refereeRelationship"
                   autoComplete="refereeRelationship"
                   required
@@ -738,23 +796,23 @@ const CreateStudentProfile = () => {
 
           {step === 4 && (
             <div className="space-y-5">
-              Preview here
-              <div>
-                <label
-                  htmlFor="consentCheck"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  I agree that all information i have provided are true
-                </label>
-                <Input
-                  {...register("consentCheck")}
-                  type="checkbox"
-                  id="consentCheck"
-                  autoComplete="consentCheck"
-                  required
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-                  placeholder="Enter the name of your church"
-                />
+              <ProfilePreview onEdit={(s) => setStep(s)} />
+              <div className="flex flex-col">
+                <div className="flex items-center space-x-2">
+                  <input
+                    {...register("consentCheck")}
+                    type="checkbox"
+                    id="consentCheck"
+                    required
+                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                  />
+                  <label
+                    htmlFor="consentCheck"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    I agree that all information I have provided is true
+                  </label>
+                </div>
                 {errors.consentCheck && (
                   <p className="text-red-500 text-xs mt-1">
                     {errors.consentCheck.message}
@@ -766,20 +824,22 @@ const CreateStudentProfile = () => {
 
           <div className="flex justify-between mt-4">
             {step > 0 && (
-              <button
+              <Button
                 type="button"
-                onClick={() => setStep(step - 1)}
-                className="px-4 py-2 bg-gray-300 rounded"
+                onClick={() => setStep((prev) => prev - 1)}
+                className="px-4 py-2 bg-gray-500 text-white rounded"
               >
                 Back
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded"
+              isLoading={isCreatePending}
+              disabled={isCreatePending}
             >
               {step === steps.length - 1 ? "Submit" : "Next"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

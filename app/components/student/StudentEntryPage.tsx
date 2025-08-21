@@ -9,14 +9,14 @@ const StudentEntryPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (session?.user && session?.user?.userProfile) {
-      router.push("/student/profile-view");
-    } else {
+    if (!session?.user?.userProfile) {
       router.push("/student/create-profile");
     }
-  }, [router, session?.user]);
+  }, [router, session?.user?.userProfile]);
 
-  return <div>Redirecting ...</div>;
+  return (<div>
+    <h3>student dashboard</h3>
+  </div>);
 };
 
 export default StudentEntryPage;

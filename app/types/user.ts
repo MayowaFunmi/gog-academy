@@ -13,13 +13,14 @@ export interface User {
   lastName: string;
   gender: string;
   email: string;
-  password: string;
+  password?: string;
+  profileStrength: number;
   createdAt: string;
   updatedAt: string;
   isActive: boolean;
   lastLogin?: string | null;
   roles: UserRole[];
-  userProfile: UserProfile;
+  userProfile?: UserProfile;
 }
 
 export interface UserRole {
@@ -51,7 +52,7 @@ export interface UserProfile {
   salvationStatus: string;
   salvationStory: string;
   gogMembershipStatus: boolean;
-  gogMembershipDate: string;
+  gogMembershipYear: string;
   classCommitmentStatus: boolean;
   assignmentCommitmentStatus: boolean;
   reasonForJoining: string;
@@ -84,8 +85,8 @@ export interface SalvationData {
 
 export interface MembershipData {
   gogMembershipStatus: boolean;
-  gogMembershipDate: string;
-  previouslyApplied: boolean
+  gogMembershipYear: string;
+  previouslyApplied: boolean;
   classCommitmentStatus: boolean;
   assignmentCommitmentStatus: boolean;
   reasonForJoining: string;
@@ -97,10 +98,71 @@ export interface ReferenceData {
   refereePhoneNumber: string;
   refereeEmail: string;
   refereeRelationship: string;
+}
+
+export interface ConsentData {
   consentCheck: boolean;
-};
+}
 
 export interface SelectInputOption {
   label: string;
   value: string | number;
 }
+
+export interface ProfileForm
+  extends BioData,
+    SalvationData,
+    MembershipData,
+    ReferenceData,
+    ConsentData {}
+
+export interface ProfileResponse {
+  status: string;
+  message: string;
+  data: UserProfile;
+}
+
+export const LOCAL_STORAGE_KEYS = {
+  bioData: "profile_bioData",
+  salvationData: "profile_salvationData",
+  membershipData: "profile_membershipData",
+  referenceData: "profile_referenceData",
+  consentData: "profile_consentData",
+};
+
+export const STEP_KEYS: Record<number, keyof typeof LOCAL_STORAGE_KEYS> = {
+  0: "bioData",
+  1: "salvationData",
+  2: "membershipData",
+  3: "referenceData",
+  4: "consentData",
+};
+
+export const STEP_FIELDS: Record<number, (keyof ProfileForm)[]> = {
+  0: [
+    "title",
+    "dateOfBirth",
+    "address",
+    "stateOfResidence",
+    "country",
+    "maritalStatus",
+    "occupation",
+  ],
+  1: ["salvationStatus", "salvationStory"],
+  2: [
+    "gogMembershipStatus",
+    "gogMembershipYear",
+    "previouslyApplied",
+    "classCommitmentStatus",
+    "assignmentCommitmentStatus",
+    "reasonForJoining",
+    "churchName",
+  ],
+  3: [
+    "refereeName",
+    "refereePhoneNumber",
+    "refereeEmail",
+    "refereeRelationship",
+  ],
+  4: ["consentCheck"],
+};

@@ -10,6 +10,7 @@ import { AxiosError } from "axios";
 import { useGetActiveUsers } from "@/app/hooks/auth";
 import SmallLoader from "../loader/SmallLoader";
 import Link from "next/link";
+import DOMPurify from "dompurify";
 
 interface DailyTaskProps {
   taskId: string;
@@ -82,7 +83,7 @@ const TaskDetail = ({ taskId }: DailyTaskProps) => {
 
                 <div
                   className="prose prose-sm mb-4"
-                  dangerouslySetInnerHTML={{ __html: task.data.description }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(task.data.description) }}
                 />
 
                 {task.data.taskScriptures && (

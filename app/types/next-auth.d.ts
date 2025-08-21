@@ -14,6 +14,7 @@ declare module "next-auth" {
       gender: "Male" | "Female";
       email: string;
       phoneNumber: string;
+      profileStrength: number;
       // password: string;
       createdAt: string;
       updatedAt: string;

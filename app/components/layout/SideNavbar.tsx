@@ -37,10 +37,16 @@ const SidebarNav = () => {
         `}
         >
           {/* Logo */}
-          <div className="flex items-center justify-center h-25 border-b">
+          <div className="flex flex-col space-y-3 items-center justify-center h-25 border-b">
             <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
               GA
             </div>
+            <Link
+              href="/student/profile-view"
+              className="text-blue-500 font-semibold text-sm"
+            >
+              My Profile
+            </Link>
           </div>
 
           {/* Menu Items */}

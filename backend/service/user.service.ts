@@ -10,7 +10,7 @@ import { hashPassowrd, validatePassword } from "../providers/passwords";
 import { createUniqueCode } from "@/app/utils/createUniqueCode";
 import { PayloadType } from "../types/payload";
 import { signJwt } from "../providers/jwtProvider";
-import { User } from "@prisma/client";
+import { User, UserProfile } from "@prisma/client";
 
 export class UserService {
   constructor() {}
@@ -78,6 +78,7 @@ export class UserService {
             email,
             phoneNumber,
             password: hashedPassword,
+            profileStrength: 30,
           },
         });
 
@@ -197,7 +198,7 @@ export class UserService {
           user: {
             ...updatedUser,
             password: undefined,
-            roles: updatedUser.roles.map((role) => role.role.name)
+            roles: updatedUser.roles.map((role) => role.role.name),
           },
           token,
         },
@@ -261,7 +262,7 @@ export class UserService {
         maritalStatus,
         salvationStatus,
         salvationStory,
-        gogMembershipDate,
+        gogMembershipYear,
         gogMembershipStatus,
         classCommitmentStatus,
         assignmentCommitmentStatus,
@@ -305,13 +306,20 @@ export class UserService {
         };
       }
 
+      if (!consentCheck) {
+        return {
+          status: "bad_request",
+          message: "User must provide consent",
+        };
+      }
+
       const profile = await prisma.$transaction(async (tx) => {
         const newProfile = await tx.userProfile.create({
           data: {
             userId,
             cohortId,
             title,
-            dateOfBirth,
+            dateOfBirth: new Date(dateOfBirth),
             address,
             stateOfResidence,
             country,
@@ -319,7 +327,7 @@ export class UserService {
             salvationStatus,
             salvationStory,
             gogMembershipStatus,
-            gogMembershipDate,
+            gogMembershipYear,
             classCommitmentStatus,
             assignmentCommitmentStatus,
             reasonForJoining,
@@ -333,12 +341,44 @@ export class UserService {
             consentCheck,
           },
         });
+
+        const profileStrength = 70;
+        await tx.user.update({
+          where: { id: userId },
+          data: { profileStrength },
+        });
         return newProfile;
       });
+
       return {
         status: "success",
-        message: "User prifle created successfully",
+        message: "User profile created successfully",
         data: profile,
+      };
+    } catch (error) {
+      console.error("Error logging in user:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+
+  async getUserProfile(userId: string): Promise<ApiResponse<UserProfile>> {
+    try {
+      const userProfile = await prisma.userProfile.findUnique({
+        where: { userId },
+      });
+      if (!userProfile) {
+        return {
+          status: "notFound",
+          message: "User profile not found",
+        };
+      }
+      return {
+        status: "success",
+        message: "User profile fetched successfully",
+        data: userProfile,
       };
     } catch (error) {
       console.error("Error logging in user:", error);
@@ -431,8 +471,8 @@ export class UserService {
       return {
         status: "success",
         message: "User fetched successfully",
-        data: user
-      }
+        data: user,
+      };
     } catch (error) {
       console.error("Error logging in user:", error);
       return {
@@ -445,13 +485,13 @@ export class UserService {
   async getActiveUsers(): Promise<ApiResponse<User[]>> {
     try {
       const users = await prisma.user.findMany({
-        where: { isActive: true }
-      })
+        where: { isActive: true },
+      });
       return {
         status: "success",
         message: "Active Users fetched successfully",
-        data: users
-      }
+        data: users,
+      };
     } catch (error) {
       console.error("Error logging in user:", error);
       return {

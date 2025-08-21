@@ -15,18 +15,20 @@ export interface User {
   id: string
   username: string
   uniqueId: string
-  matricNumber?: string
+  matricNumber?: string | null
   firstName: string
   lastName: string
   gender: "Male" | "Female";
   email: string
   phoneNumber: string
+  profileStrength: number;
   // password: string
   createdAt: string
   updatedAt: string
   isActive: boolean
   lastLogin?: string | null
   roles: string[]
+  userProfile?: UserProfile | null
 }
 
 export interface UserProfile {
@@ -42,7 +44,7 @@ export interface UserProfile {
   salvationStatus: string;
   salvationStory: string;
   gogMembershipStatus: boolean;
-  gogMembershipDate: string;
+  gogMembershipYear: string;
   classCommitmentStatus: boolean;
   assignmentCommitmentStatus: boolean;
   reasonForJoining: string;

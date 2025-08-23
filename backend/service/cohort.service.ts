@@ -47,7 +47,10 @@ export class CohortService {
 
         let weekNumber = 1;
 
-        while (isBefore(currentStart, finalEnd) || isSameDay(currentStart, finalEnd)) {
+        while (
+          isBefore(currentStart, finalEnd) ||
+          isSameDay(currentStart, finalEnd)
+        ) {
           const rawEnd = addDays(currentStart, 6);
           const currentEnd = rawEnd > finalEnd ? finalEnd : rawEnd;
           academicWeeksData.push({
@@ -62,9 +65,11 @@ export class CohortService {
 
         await tx.academicWeek.createMany({
           data: academicWeeksData,
-        })
+        });
         return {
-          ...newCohort, startDate: dateStarted, endDate: dateEnded,
+          ...newCohort,
+          startDate: dateStarted,
+          endDate: dateEnded,
         };
       });
 
@@ -185,8 +190,8 @@ export class CohortService {
       return {
         status: "success",
         message: "Cohort fetched successfully",
-        data: { 
-          ...cohort, 
+        data: {
+          ...cohort,
           startDate: addHour(cohort.startDate),
           endDate: addHour(cohort.endDate),
           academicWeek: cohort?.academicWeek?.map((week) => ({
@@ -194,7 +199,7 @@ export class CohortService {
             startDate: addHour(week.startDate),
             endDate: addHour(week.endDate),
           })),
-          userCount: totalUsers 
+          userCount: totalUsers,
         },
       };
     } catch (error) {
@@ -210,6 +215,10 @@ export class CohortService {
     try {
       const cohort = await prisma.academyCohort.findFirst({
         where: { startDate: { lte: new Date() }, endDate: { gte: new Date() } },
+        include: {
+          taskTypes: true,
+          academicWeek: true,
+        },
       });
       if (!cohort) {
         return {

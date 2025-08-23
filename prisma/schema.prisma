@@ -153,8 +153,9 @@ model AcademicWeek {
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
-  dailyTasks DailyTask[]   @relation("WeekTasks") // one-to-many
-  cohort     AcademyCohort @relation(fields: [cohortId], references: [id])
+  dailyTasks      DailyTask[]      @relation("WeekTasks") // one-to-many
+  cohort          AcademyCohort    @relation(fields: [cohortId], references: [id])
+  taskSubmissions TaskSubmission[]
 
   @@map("academic_week")
 }
@@ -175,11 +176,42 @@ model DailyTask {
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
-  academicWeek AcademicWeek    @relation("WeekTasks", fields: [weekId], references: [id])
-  taskType     AcademyTaskType @relation("TypeTasks", fields: [taskTypeId], references: [id])
-  attendance   Attendance[]
+  academicWeek    AcademicWeek     @relation("WeekTasks", fields: [weekId], references: [id])
+  taskType        AcademyTaskType  @relation("TypeTasks", fields: [taskTypeId], references: [id])
+  attendance      Attendance[]
+  taskSubmissions TaskSubmission[]
 
   @@map("daily_task")
+}
+
+model TaskSubmission {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  taskId      String   @map("task_id")
+  weekId      String   @map("week_id")
+  submission  String?
+  score       Int?
+  submittedAt DateTime @default(now()) @map("submitted_at")
+  isLate      Boolean?  @default(false) @map("is_late")
+  isApproved  Boolean?  @default(false) @map("is_approved")
+
+  dailyTask    DailyTask              @relation(fields: [taskId], references: [id])
+  academicWeek AcademicWeek           @relation(fields: [weekId], references: [id])
+  screenshots  SubmissionScreenshot[]
+
+  @@unique([userId, taskId])
+  @@map("task_submission")
+}
+
+model SubmissionScreenshot {
+  id           String   @id @default(uuid())
+  submissionId String   @unique() @map("submission_id")
+  filePath     String
+  uploadedAt   DateTime @default(now()) @map("uploaded_at")
+
+  taskSubmission TaskSubmission @relation(fields: [submissionId], references: [id])
+
+  @@map("submission_screenshot")
 }
 
 model Attendance {

@@ -1,6 +1,6 @@
 "use client";
 
-import AdminWeeklyTasks from "@/app/components/admin/GetWeeklyTasks";
+import GetWeeklyTasks from "@/app/components/admin/GetWeeklyTasks";
 import { useParams, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
@@ -26,7 +26,7 @@ export default function WeeklyTasksPage() {
 
   return (
     <div>
-      <AdminWeeklyTasks
+      <GetWeeklyTasks
         weekNumber={weekNumber}
         startDate={startDate}
         endDate={endDate}

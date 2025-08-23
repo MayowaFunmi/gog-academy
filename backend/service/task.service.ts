@@ -3,12 +3,16 @@ import {
   CreateAcademyTaskTypeDto,
   CreateAcademyWeekDto,
   CreateDailyTaskDto,
+  CreateTaskSubmissionInput,
 } from "../dto/task.dto";
 import { ApiResponse } from "../types/apiResponse";
 import { slugify } from "../utils/slugify";
 import { addDays, differenceInDays } from "date-fns";
 import { removeHour } from "../utils/dateFormat";
 import { AcademicWeek, AcademyTaskType, DailyTask } from "@prisma/client";
+import { renameFile, validateFileSize, validateFileType } from "../utils/file";
+import fs from "fs";
+import { BadRequestError } from "../utils/BadRequestError";
 
 export class TaskService {
   constructor() {}
@@ -263,7 +267,7 @@ export class TaskService {
           dayOfWeek: "asc",
         },
       });
-      
+
       if (tasks.length === 0) {
         return {
           status: "notFound",
@@ -272,7 +276,7 @@ export class TaskService {
       }
       return {
         status: "success",
-        message: `Daily task created successfully`,
+        message: `Weekly tasks retrieved successfully`,
         data: tasks,
       };
     } catch (error) {
@@ -352,9 +356,10 @@ export class TaskService {
       const task = await prisma.dailyTask.findUnique({
         where: { id: taskId },
         include: {
-          attendance: true
-        }
-      })
+          attendance: true,
+          taskSubmissions: true,
+        },
+      });
       return {
         status: "success",
         message: "Daily Task details retrieved successfully",
@@ -369,5 +374,94 @@ export class TaskService {
         data: null,
       };
     }
+  }
+
+  async createTaskSubmission(
+    input: CreateTaskSubmissionInput
+  ): Promise<ApiResponse> {
+    const { userId, taskId, weekId, submission, screenshots } = input;
+
+    const [userExists, taskWithWeek] = await Promise.all([
+      prisma.user.findUnique({ where: { id: userId } }),
+      prisma.dailyTask.findUnique({
+        where: { id: taskId },
+        include: { academicWeek: true },
+      }),
+    ]);
+
+    if (
+      !userExists ||
+      !taskWithWeek ||
+      !taskWithWeek.academicWeek ||
+      taskWithWeek.academicWeek.id !== weekId
+    ) {
+      return {
+        status: "notFound",
+        message: "User, task, or week not found",
+      };
+    }
+
+    if (Array.isArray(screenshots)) {
+      for (const f of screenshots) {
+        const typeOk = validateFileType(f.mimetype || "");
+        const sizeOk = validateFileSize(f.size || 0);
+
+        if (!typeOk || !sizeOk) {
+          // cleanup temp file if present
+          try {
+            if (f.filepath && fs.existsSync(f.filepath))
+              fs.unlinkSync(f.filepath);
+          } catch {}
+          throw new BadRequestError(
+            !typeOk ? "Invalid file type" : "File too large"
+          );
+        }
+      }
+    }
+
+    const isLate = new Date() > taskWithWeek.endTime;
+
+    const submissionRecord = await prisma.$transaction(async (tx) => {
+      const createdSubmission = await tx.taskSubmission.create({
+        data: {
+          userId,
+          taskId,
+          weekId,
+          submission: submission ?? null,
+          isLate,
+          score: 5
+        },
+      });
+
+      const paths: string[] = [];
+      if (Array.isArray(screenshots)) {
+        for (const f of screenshots) {
+          // const fileWithPath = f as typeof f & {
+          //   filepath?: string;
+          //   originalname?: string;
+          // };
+          const relPath = renameFile(
+            f.filepath ?? "",
+            f.originalFilename ?? ""
+          );
+          paths.push(relPath);
+        }
+      }
+
+      if (paths.length > 0) {
+        await tx.submissionScreenshot.createMany({
+          data: paths.map((p) => ({
+            submissionId: createdSubmission.id,
+            filePath: p,
+          })),
+        });
+      }
+      return createdSubmission;
+    });
+    return {
+      status: "success",
+      message: "Task submission created successfully",
+      data: submissionRecord,
+    };
   }
 }

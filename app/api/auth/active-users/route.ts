@@ -28,4 +28,4 @@ const getActiveUsers = async (): Promise<NextResponse> => {
   }
 };
 
-export const GET = authMiddleware(getActiveUsers, ["SuperAdmin"])
+export const GET = authMiddleware(getActiveUsers)

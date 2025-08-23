@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { File } from "formidable";
 
 export const createAcademyCohortSchema = z.object({
   cohort: z.string().min(1, { message: "Cohort name is required" }),
@@ -35,6 +36,21 @@ export const createDailyTaskSchema = z.object({
   hasExtension: z.boolean().optional(),
   activated: z.boolean().optional(),
 });
+
+export const taskSubmissionSchema = z.object({
+  userId: z.string({ required_error: "User ID is required"}),
+  taskId: z.string({ required_error: "Task ID is required"}),
+  weekId: z.string({ required_error: "Week ID is required"}),
+  submission: z.string().max(1000).nullable().optional()
+})
+
+export interface CreateTaskSubmissionInput {
+  userId: string;
+  taskId: string;
+  weekId: string;
+  submission: string | null | undefined;
+  screenshots?: File[];
+}
 
 export type CreateAcademyCohortDto = z.infer<typeof createAcademyCohortSchema>;
 export type CreateAcademyTaskTypeDto = z.infer<

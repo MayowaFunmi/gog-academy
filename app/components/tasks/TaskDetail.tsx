@@ -1,7 +1,7 @@
 "use client";
 
 import { useGetTaskById } from "@/app/hooks/tasks";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import PageLoader from "../loader/pageLoader";
 import BackButton from "../ui/BackButton";
 import moment from "moment";
@@ -11,12 +11,24 @@ import { useGetActiveUsers } from "@/app/hooks/auth";
 import SmallLoader from "../loader/SmallLoader";
 import Link from "next/link";
 import DOMPurify from "dompurify";
+import { useSession } from "next-auth/react";
+import Modal from "../ui/Modal";
+import SubmitDailyTask from "../student/SubmitDailyTask";
 
 interface DailyTaskProps {
   taskId: string;
+  weekId: string;
 }
 
-const TaskDetail = ({ taskId }: DailyTaskProps) => {
+const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
+  const { data: session } = useSession();
+  const userSession = session && session?.user;
+  const role = userSession?.roles[0];
+  const userId = userSession?.id;
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleCloseModal = () => {};
+
   const weekDay = [
     "Sunday",
     "Monday",
@@ -83,7 +95,9 @@ const TaskDetail = ({ taskId }: DailyTaskProps) => {
 
                 <div
                   className="prose prose-sm mb-4"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(task.data.description) }}
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(task.data.description),
+                  }}
                 />
 
                 {task.data.taskScriptures && (
@@ -105,16 +119,27 @@ const TaskDetail = ({ taskId }: DailyTaskProps) => {
                     .toUpperCase()}
                 </p>
 
-                {task.data.taskLink && (
-                  <Link
-                    href={task.data.taskLink.trim()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
-                  >
-                    Open Task Link
-                  </Link>
-                )}
+                <div className="flex items-start justify-between">
+                  {task.data.taskLink && (
+                    <Link
+                      href={task.data.taskLink.trim()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                    >
+                      Open Task Link
+                    </Link>
+                  )}
+
+                  {role && role === "Student" && (
+                    <button
+                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                      onClick={() => setIsOpen(true)}
+                    >
+                      Submit Task
+                    </button>
+                  )}
+                </div>
               </>
             )
           )}
@@ -151,6 +176,21 @@ const TaskDetail = ({ taskId }: DailyTaskProps) => {
           </div>
         </div>
       </div>
+
+      {isOpen && (
+        <Modal
+          isOpen={isOpen}
+          closeModal={handleCloseModal}
+          title="Submit Daily Task"
+          widthClass="max-w-3xl"
+        >
+          <SubmitDailyTask
+            userId={userId ?? ""}
+            taskId={taskId}
+            weekId={weekId}
+          />
+        </Modal>
+      )}
     </main>
   );
 };

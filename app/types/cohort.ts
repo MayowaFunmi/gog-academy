@@ -87,7 +87,7 @@ export interface AddCohortResponse {
 export interface ActiveCohortResponse {
   status: string;
   message: string;
-  data: Cohort;
+  data: CohortDetails;
 }
 
 export interface CohortWeeksResponse {

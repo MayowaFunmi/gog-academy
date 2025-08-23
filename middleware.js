@@ -22,6 +22,8 @@ export async function middleware(request) {
     if (!pathname.startsWith(`/${expectedPrefix}`)) {
       return NextResponse.redirect(new URL(expectedPath, request.url));
     }
+  } else {
+    return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
   return NextResponse.next();

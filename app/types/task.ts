@@ -101,3 +101,11 @@ export interface TaskAttendance {
   marked: boolean
   isLate: boolean
 }
+
+export interface CreateTaskSubmissionInput {
+  userId: string;
+  taskId: string;
+  weekId: string;
+  submission: string | null | undefined;
+  screenshots?: File[];
+}

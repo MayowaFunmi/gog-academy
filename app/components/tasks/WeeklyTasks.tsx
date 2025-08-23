@@ -13,9 +13,10 @@ import moment from "moment";
 
 interface WeeklyTasksProps {
   tasksResponse: WeeklyTasksResponse;
+  role: string;
 }
 
-const WeeklyTasks = ({ tasksResponse }: WeeklyTasksProps) => {
+const WeeklyTasks = ({ tasksResponse, role }: WeeklyTasksProps) => {
   const {
     mutate: updateTask,
     data: updateData,
@@ -29,6 +30,8 @@ const WeeklyTasks = ({ tasksResponse }: WeeklyTasksProps) => {
     if (!taskId) return;
     updateTask(taskId);
   };
+
+  const showResponse = role && role === "Student" ? tasksResponse.data?.filter((task) => task.activated) : tasksResponse.data;
 
   useEffect(() => {
     if (isUpdateError) {
@@ -53,7 +56,7 @@ const WeeklyTasks = ({ tasksResponse }: WeeklyTasksProps) => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* <div></div> */}
-          {tasksResponse.data.map((task) => (
+          {showResponse.map((task) => (
             <div
               key={task.id}
               className="bg-white rounded-xl shadow-md p-4 flex flex-col justify-between border border-gray-200"
@@ -83,13 +86,13 @@ const WeeklyTasks = ({ tasksResponse }: WeeklyTasksProps) => {
                 </p>
                 <p className="text-xs text-gray-500">
                   End:{" "}
-                  {moment(task.startTime).format("dddd MMMM D, YYYY h:mma")}
+                  {moment(task.endTime).format("dddd MMMM D, YYYY h:mma")}
                 </p>
               </div>
 
               <div className="mt-4 flex justify-between items-center gap-2">
                 <Link
-                  href={`/admin/tasks/${task.id}`}
+                  href={`/${role === "SuperAdmin" ? "admin" : "student"}/tasks/${task.id}?wkId=${task.weekId}`}
                   className="px-3 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition"
                 >
                   View Details
@@ -104,18 +107,20 @@ const WeeklyTasks = ({ tasksResponse }: WeeklyTasksProps) => {
                     Open Link
                   </a>
                 )}
-                <div
-                  onClick={() => handleUpdateClick(task.id)}
-                  className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
-                    task.activated ? "bg-green-500" : "bg-gray-300"
-                  }`}
-                >
+                {role === "SuperAdmin" && (
                   <div
-                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
-                      task.activated ? "translate-x-6" : "translate-x-0"
+                    onClick={() => handleUpdateClick(task.id)}
+                    className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
+                      task.activated ? "bg-green-500" : "bg-gray-300"
                     }`}
-                  />
-                </div>
+                  >
+                    <div
+                      className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+                        task.activated ? "translate-x-6" : "translate-x-0"
+                      }`}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           ))}

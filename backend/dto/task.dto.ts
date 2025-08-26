@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { File } from "formidable";
+// import type { File } from "formidable";
 
 export const createAcademyCohortSchema = z.object({
   cohort: z.string().min(1, { message: "Cohort name is required" }),
@@ -12,7 +12,10 @@ export const createAcademyCohortSchema = z.object({
 export const createAcademyTaskTypeSchema = z.object({
   cohortId: z.string({ required_error: "cohort id cannot be null" }),
   name: z.string({ required_error: "name is required" }),
-  slug: z.string().optional(),
+  // slug: z.string().optional(),
+  requiresAttendance: z.boolean({ invalid_type_error: "Set as either true or false" }).optional(),
+  requiresSubmissions: z.boolean({ invalid_type_error: "Set as either true or false" }).optional(),
+  requiresMark: z.boolean({ invalid_type_error: "Set as either true or false" }).optional(),
 });
 
 export const createAcademyWeekSchema = z.object({
@@ -48,7 +51,7 @@ export interface CreateTaskSubmissionInput {
   userId: string;
   taskId: string;
   weekId: string;
-  submission: string | null | undefined;
+  submission?: string | null;
   screenshots?: File[];
 }
 

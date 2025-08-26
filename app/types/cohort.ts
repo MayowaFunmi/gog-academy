@@ -1,3 +1,5 @@
+import { TaskType } from "./task";
+
 export interface Cohort {
   id: string;
   cohort: string;
@@ -31,14 +33,14 @@ export interface CohortsResponse {
   data: CohortsResponseData;
 }
 
-export interface TaskType {
-  id: string;
-  cohortId: string;
-  name: string;
-  slug: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// export interface TaskType {
+//   id: string;
+//   cohortId: string;
+//   name: string;
+//   slug: string;
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
 export interface AcademicWeek {
   id: string;

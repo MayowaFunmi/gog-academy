@@ -98,14 +98,14 @@ const WeeklyTasks = ({ tasksResponse, role }: WeeklyTasksProps) => {
                   View Details
                 </Link>
                 {task.taskLink && (
-                  <a
+                  <Link
                     href={task.taskLink.trim()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-3 py-1 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 transition"
                   >
                     Open Link
-                  </a>
+                  </Link>
                 )}
                 {role === "SuperAdmin" && (
                   <div

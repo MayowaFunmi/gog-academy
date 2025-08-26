@@ -1,13 +1,28 @@
 import { mapHttpStatus } from "@/app/utils/mapHttpPresponse";
 import { taskController } from "@/backend/controller/task/task.module";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
+import { User } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-
-const submitTask = async (request: NextRequest): Promise<NextResponse> => {
+const getUserTaskSubmission = async (
+  request: NextRequest,
+  context: { user: Promise<User> }
+): Promise<NextResponse> => {
   try {
-    const result = await taskController.submitTask(request);
+    const { id } = await context.user
+    const { searchParams } = new URL(request.url);
+
+    const taskId = searchParams.get("taskId") ?? ""
+    if (!taskId && !id) {
+      return NextResponse.json(
+        {
+          status: "bad_request",
+          message: "Missing user ID and/or task ID",
+        },
+        { status: 400 }
+      );
+    }
+    const result = await taskController.getUserSubmissions(id, taskId);
     return NextResponse.json(
       {
         status: result.status,
@@ -30,4 +45,4 @@ const submitTask = async (request: NextRequest): Promise<NextResponse> => {
   }
 };
 
-export const POST = authMiddleware(submitTask, ["Student"])
+export const GET = authMiddleware(getUserTaskSubmission)

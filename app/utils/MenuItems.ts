@@ -33,6 +33,11 @@ export const adminMenuItems: MenuItems[] = [
     link: "/admin/tasks",
   },
   {
+    title: "Tasks Submissions",
+    icon: HiOutlineClipboardCheck,
+    link: "/admin/tasks/submissions",
+  },
+  {
     title: "Assignments",
     icon: MdAssignment,
     link: "/admin/assignments",

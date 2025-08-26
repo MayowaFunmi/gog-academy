@@ -208,7 +208,7 @@ const createUserProfile = async (data: unknown): Promise<ProfileResponse> => {
     console.error("API error:", error);
     throw error;
   }
-}
+};
 
 const getUserProfile = async (): Promise<ProfileResponse> => {
   try {
@@ -218,12 +218,32 @@ const getUserProfile = async (): Promise<ProfileResponse> => {
     console.error("API error:", error);
     throw error;
   }
-}
+};
 
 const getUserById = async (userId: string): Promise<UserResponse> => {
   try {
     const response = await apiClient.get(`/api/user/${userId}`);
     return response.data as UserResponse;
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+};
+
+const submitTask = async (data: FormData) => {
+  try {
+    const response = await apiClient.post("/api/task/submit", data);
+    return response.data;
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+};
+
+const getUserTaskSubmission = async(taskId: string): Promise<{ status: "success", message: "", data: boolean}> => {
+  try {
+    const response = await apiClient.get(`/api/task/check-user-task-submission?taskId=${taskId}`);
+    return response.data as { status: "success", message: "", data: boolean };
   } catch (error) {
     console.error("API error:", error);
     throw error;
@@ -249,7 +269,9 @@ const apiEndpointCalls = {
   getUserMe,
   createUserProfile,
   getUserProfile,
-  getUserById
+  getUserById,
+  submitTask,
+  getUserTaskSubmission
 };
 
 export default apiEndpointCalls;

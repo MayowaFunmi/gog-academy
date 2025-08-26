@@ -55,3 +55,21 @@ export function useGetTaskById(taskId: string) {
     enabled: !!taskId
   })
 }
+
+export function useTaskSubmit() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: FormData) => apiEndpointCalls.submitTask(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["GetTaskDetails"]})
+    }
+  })
+}
+
+export function useGetUserTaskSubmission(taskId: string) {
+  return useQuery({
+    queryKey: ["GetTaskDetails", taskId],
+    queryFn: () => apiEndpointCalls.getUserTaskSubmission(taskId),
+    enabled: !!taskId
+  })
+}

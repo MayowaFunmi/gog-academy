@@ -21,3 +21,8 @@ export interface PaginationMeta {
   hasNextPage: boolean
   hasPreviousPage: boolean
 }
+
+export interface PaginatedResult<T> {
+  items: T[];
+  meta: PaginationMeta;
+}

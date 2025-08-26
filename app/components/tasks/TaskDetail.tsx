@@ -1,6 +1,6 @@
 "use client";
 
-import { useGetTaskById } from "@/app/hooks/tasks";
+import { useGetTaskById, useGetUserTaskSubmission } from "@/app/hooks/tasks";
 import React, { useEffect, useState } from "react";
 import PageLoader from "../loader/pageLoader";
 import BackButton from "../ui/BackButton";
@@ -27,7 +27,9 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
   const userId = userSession?.id;
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleCloseModal = () => {};
+  const handleCloseModal = () => {
+    setIsOpen(false);
+  };
 
   const weekDay = [
     "Sunday",
@@ -54,6 +56,12 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
     error: usersError,
   } = useGetActiveUsers();
 
+  const {
+    data: userTaskSubmission,
+    isError: isUserTaskError,
+    error: userTaskError,
+  } = useGetUserTaskSubmission(taskId);
+
   useEffect(() => {
     if (taskIsError) {
       console.error("Error fetching task categories:", taskError);
@@ -73,6 +81,16 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
       fail_notify(errMsg);
     }
   }, [usersError, isUsersError]);
+
+  useEffect(() => {
+    if (isUserTaskError) {
+      console.error("Error fetching task categories:", userTaskError);
+      const errMsg =
+        (userTaskError as AxiosError).response?.data?.message ||
+        "An error occurred while fetching task categories.";
+      fail_notify(errMsg);
+    }
+  }, [userTaskError, isUserTaskError]);
 
   return (
     <main className="w-full mt-3 px-3">
@@ -132,12 +150,29 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
                   )}
 
                   {role && role === "Student" && (
-                    <button
-                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
-                      onClick={() => setIsOpen(true)}
-                    >
-                      Submit Task
-                    </button>
+                    <>
+                      <button
+                        className={`px-4 py-2 text-white rounded-lg  transition 
+                            ${
+                              userTaskSubmission?.data
+                                ? "bg-gray-500 opacity-50 cursor-not-allowed"
+                                : "bg-green-500 hover:bg-green-600"
+                            }`}
+                        onClick={() => setIsOpen(true)}
+                        disabled={userTaskSubmission?.data}
+                      >
+                        {userTaskSubmission?.data ? "Submitted" : "Submit"}
+                      </button>
+
+                      {task.data?.taskType?.requiresAttendance && (
+                        <button
+                          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                          // onClick={() => setIsOpen(true)}
+                        >
+                          Mark Attendance
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </>
@@ -188,6 +223,7 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
             userId={userId ?? ""}
             taskId={taskId}
             weekId={weekId}
+            closeModal={handleCloseModal}
           />
         </Modal>
       )}

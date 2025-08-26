@@ -9,7 +9,7 @@ import { AxiosError } from "axios";
 import { fail_notify } from "@/app/utils/constants";
 import PageLoader from "../loader/pageLoader";
 import moment from "moment";
-import { calculateDuration, getDateStatus } from "@/app/utils/formatDate";
+import { calculateDuration, calculateWeeks, getDateStatus } from "@/app/utils/formatDate";
 import Modal from "../ui/Modal";
 import AddCohort from "../cohorts/AddCohort";
 import { FaCircle } from "react-icons/fa6";
@@ -254,8 +254,14 @@ const AdminDashboard = () => {
                         Duration
                       </h3>
                       <div className="flex items-center gap-2 text-white text-2xl font-bold">
-                        <span>
+                        {/* <span>
                           {calculateDuration(
+                            selectedCohort?.data?.startDate ?? "",
+                            selectedCohort?.data?.endDate ?? ""
+                          )}
+                        </span> */}
+                        <span>
+                          {calculateWeeks(
                             selectedCohort?.data?.startDate ?? "",
                             selectedCohort?.data?.endDate ?? ""
                           )}

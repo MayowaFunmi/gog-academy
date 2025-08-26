@@ -9,6 +9,7 @@ interface RichTextProps {
   value: string;
   setValue: (value: string) => void;
   onBlur?: (value: unknown) => void;
+  placeholder?: string
 }
 
 export const modules = {
@@ -23,7 +24,7 @@ export const modules = {
 };
 
 const RichText = forwardRef((props: RichTextProps, ref) => {
-  const { value, setValue, onBlur } = props;
+  const { value, setValue, onBlur, placeholder } = props;
   const quillRef = useRef<typeof ReactQuill>(null);
 
   useImperativeHandle(ref, () => ({
@@ -39,7 +40,7 @@ const RichText = forwardRef((props: RichTextProps, ref) => {
       onChange={setValue}
       onBlur={onBlur}
       modules={modules}
-      placeholder="Type something..."
+      placeholder={placeholder || "Write something..."}
     />
   );
 });

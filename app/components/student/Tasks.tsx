@@ -10,6 +10,7 @@ import { AxiosError } from "axios";
 import { formatDateRange } from "@/app/utils/formatDate";
 import Button from "../ui/button";
 import { useRouter } from "next/navigation";
+import { capitalizeFirstLetter } from "@/app/utils/textTransform";
 
 const Tasks = () => {
   // const [currentCohortId, setcurrentCohortId] = useState<string>("");
@@ -126,7 +127,7 @@ const Tasks = () => {
                       key={task.id}
                       className={`px-3 py-2 text-sm rounded-md border hover:bg-blue-100 hover:cursor-pointer`}
                     >
-                      {task.name}
+                      {capitalizeFirstLetter(task.name)}
                     </button>
                   ))
                 ) : (

@@ -23,23 +23,24 @@ enum Gender {
 }
 
 model User {
-  id              String       @id @default(uuid())
-  username        String       @unique
-  uniqueId        String       @unique @map("unique_id")
-  matricNumber    String?      @unique @map("matric_number")
+  id              String           @id @default(uuid())
+  username        String           @unique
+  uniqueId        String           @unique @map("unique_id")
+  matricNumber    String?          @unique @map("matric_number")
   firstName       String
   lastName        String
   gender          Gender
-  email           String       @unique
-  phoneNumber     String       @unique @map("phone_number")
+  email           String           @unique
+  phoneNumber     String           @unique @map("phone_number")
   password        String
-  profileStrength Int          @default(0) @map("profile_strength")
-  createdAt       DateTime     @default(now()) @map("created_at")
-  updatedAt       DateTime     @updatedAt @map("updated_at")
+  profileStrength Int              @default(0) @map("profile_strength")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
   roles           UserRole[]
   userProfile     UserProfile?
-  isActive        Boolean      @default(false) @map("is_active")
-  lastLogin       DateTime?    @map("last_login")
+  isActive        Boolean          @default(false) @map("is_active")
+  lastLogin       DateTime?        @map("last_login")
+  TaskSubmission  TaskSubmission[]
 
   @@map("users")
 }
@@ -131,14 +132,17 @@ model AcademyCohort {
 }
 
 model AcademyTaskType {
-  id         String        @id @default(uuid())
-  cohortId   String        @map("cohort_id")
-  name       String // lecture, SSG, assignment, sermon, exams, etc
-  slug       String
-  createdAt  DateTime      @default(now()) @map("created_at")
-  updatedAt  DateTime      @updatedAt @map("updated_at")
-  dailyTasks DailyTask[]   @relation("TypeTasks") // one-to-many
-  cohort     AcademyCohort @relation(fields: [cohortId], references: [id])
+  id                  String        @id @default(uuid())
+  cohortId            String        @map("cohort_id")
+  name                String // prayers, lectures, presentations => attendance  // assignments, SSG reflections, PGG sermons, exams => submissions + marks
+  slug                String
+  requiresAttendance  Boolean       @default(false) @map("requires_attendance")
+  requiresSubmissions Boolean       @default(false) @map("requires_submissions")
+  requiresMark        Boolean       @default(false) @map("requires_mark")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+  dailyTasks          DailyTask[]   @relation("TypeTasks") // one-to-many
+  cohort              AcademyCohort @relation(fields: [cohortId], references: [id])
 
   @@map("academic_task_type")
 }
@@ -173,6 +177,7 @@ model DailyTask {
   endTime        DateTime @map("end_time")
   hasExtension   Boolean  @default(false) @map("has_extension")
   activated      Boolean  @default(false)
+  // isSubmitted    Boolean  @default(false) @map("is_submitted")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -192,9 +197,11 @@ model TaskSubmission {
   submission  String?
   score       Int?
   submittedAt DateTime @default(now()) @map("submitted_at")
-  isLate      Boolean?  @default(false) @map("is_late")
-  isApproved  Boolean?  @default(false) @map("is_approved")
+  isSubmitted Boolean  @default(false) @map("is_submitted")
+  isLate      Boolean? @default(false) @map("is_late")
+  isApproved  Boolean? @default(false) @map("is_approved")
 
+  user         User                   @relation(fields: [userId], references: [id])
   dailyTask    DailyTask              @relation(fields: [taskId], references: [id])
   academicWeek AcademicWeek           @relation(fields: [weekId], references: [id])
   screenshots  SubmissionScreenshot[]
@@ -205,7 +212,7 @@ model TaskSubmission {
 
 model SubmissionScreenshot {
   id           String   @id @default(uuid())
-  submissionId String   @unique() @map("submission_id")
+  submissionId String   @map("submission_id")
   filePath     String
   uploadedAt   DateTime @default(now()) @map("uploaded_at")
 

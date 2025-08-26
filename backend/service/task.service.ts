@@ -5,14 +5,23 @@ import {
   CreateDailyTaskDto,
   CreateTaskSubmissionInput,
 } from "../dto/task.dto";
-import { ApiResponse } from "../types/apiResponse";
+import { ApiResponse, PaginationMeta } from "../types/apiResponse";
 import { slugify } from "../utils/slugify";
 import { addDays, differenceInDays } from "date-fns";
 import { removeHour } from "../utils/dateFormat";
-import { AcademicWeek, AcademyTaskType, DailyTask } from "@prisma/client";
-import { renameFile, validateFileSize, validateFileType } from "../utils/file";
+import {
+  AcademicWeek,
+  AcademyTaskType,
+  DailyTask,
+  TaskSubmission,
+} from "@prisma/client";
+import {
+  ensureUploadDir,
+  validateFileSize,
+  validateFileType,
+} from "../utils/file";
 import fs from "fs";
-import { BadRequestError } from "../utils/BadRequestError";
+import path from "path";
 
 export class TaskService {
   constructor() {}
@@ -21,7 +30,13 @@ export class TaskService {
     data: CreateAcademyTaskTypeDto
   ): Promise<ApiResponse> {
     try {
-      const { name, cohortId } = data;
+      const {
+        name,
+        cohortId,
+        requiresAttendance,
+        requiresSubmissions,
+        requiresMark,
+      } = data;
       const cohort = await prisma.academyCohort.findUnique({
         where: { id: cohortId },
       });
@@ -52,6 +67,9 @@ export class TaskService {
             cohortId,
             slug: slugified,
             name: name.trim().toLowerCase(),
+            requiresAttendance,
+            requiresSubmissions,
+            requiresMark,
           },
         });
         return newTask;
@@ -358,6 +376,7 @@ export class TaskService {
         include: {
           attendance: true,
           taskSubmissions: true,
+          taskType: true,
         },
       });
       return {
@@ -381,6 +400,13 @@ export class TaskService {
   ): Promise<ApiResponse> {
     const { userId, taskId, weekId, submission, screenshots } = input;
 
+    if (!screenshots && !submission) {
+      return {
+        status: "bad_request",
+        message: "At least one of screenshots or submission is required",
+      };
+    }
+
     const [userExists, taskWithWeek] = await Promise.all([
       prisma.user.findUnique({ where: { id: userId } }),
       prisma.dailyTask.findUnique({
@@ -400,22 +426,27 @@ export class TaskService {
         message: "User, task, or week not found",
       };
     }
-
-    if (Array.isArray(screenshots)) {
-      for (const f of screenshots) {
-        const typeOk = validateFileType(f.mimetype || "");
-        const sizeOk = validateFileSize(f.size || 0);
+    // prepare upload dir
+    const uploadDir = ensureUploadDir();
+    const savedPaths: string[] = [];
+    if (screenshots) {
+      for (const file of screenshots) {
+        const typeOk = validateFileType(file.type);
+        const sizeOk = validateFileSize(file.size);
 
         if (!typeOk || !sizeOk) {
-          // cleanup temp file if present
-          try {
-            if (f.filepath && fs.existsSync(f.filepath))
-              fs.unlinkSync(f.filepath);
-          } catch {}
-          throw new BadRequestError(
-            !typeOk ? "Invalid file type" : "File too large"
-          );
+          return {
+            status: "bad_request",
+            message: !typeOk ? "Invalid file type" : "File size too large",
+          };
         }
+
+        const buffer = Buffer.from(await file.arrayBuffer())
+        const uniqueName = `${Date.now()}-${file.name}`
+        const savePath = path.join(uploadDir, uniqueName)
+
+        fs.writeFileSync(savePath, buffer)
+        savedPaths.push(path.relative(process.cwd(), savePath))
       }
     }
 
@@ -429,33 +460,25 @@ export class TaskService {
           weekId,
           submission: submission ?? null,
           isLate,
-          score: 5
+          score: 5,
+          isSubmitted: true
         },
       });
 
-      const paths: string[] = [];
-      if (Array.isArray(screenshots)) {
-        for (const f of screenshots) {
-          // const fileWithPath = f as typeof f & {
-          //   filepath?: string;
-          //   originalname?: string;
-          // };
-          const relPath = renameFile(
-            f.filepath ?? "",
-            f.originalFilename ?? ""
-          );
-          paths.push(relPath);
-        }
-      }
-
-      if (paths.length > 0) {
+      if (savedPaths.length > 0) {
         await tx.submissionScreenshot.createMany({
-          data: paths.map((p) => ({
+          data: savedPaths.map((p) => ({
             submissionId: createdSubmission.id,
             filePath: p,
           })),
         });
       }
+
+      // await tx.dailyTask.update({
+      //   where: { id: taskId },
+      //   data: { isSubmitted: true },
+      // });
+
       return createdSubmission;
     });
     return {
@@ -463,5 +486,123 @@ export class TaskService {
       message: "Task submission created successfully",
       data: submissionRecord,
     };
+  }
+
+  async getWeeklySubmissionsByApproval(
+    weekId: string,
+    page: number = 1,
+    pageSize: number = 10
+  ): Promise<
+    ApiResponse<{
+      approved: { items: TaskSubmission[]; meta: PaginationMeta };
+      unapproved: { items: TaskSubmission[]; meta: PaginationMeta };
+    }>
+  > {
+    const week = await prisma.academicWeek.findUnique({
+      where: { id: weekId },
+    });
+    if (!week) {
+      return {
+        status: "notFound",
+        message: "Week not found",
+        data: null,
+      };
+    }
+
+    const skip = (page - 1) * pageSize;
+
+    try {
+      const [approvedCount, unapprovedCount, approved, unapproved] =
+        await prisma.$transaction([
+          prisma.taskSubmission.count({
+            where: { weekId, isApproved: true },
+          }),
+          prisma.taskSubmission.count({
+            where: { weekId, isApproved: false },
+          }),
+          prisma.taskSubmission.findMany({
+            where: { weekId, isApproved: true },
+            skip,
+            take: pageSize,
+            include: {
+              user: { include: { userProfile: true } },
+              academicWeek: true,
+              dailyTask: true,
+              screenshots: true,
+            },
+            orderBy: {
+              submittedAt: "desc",
+            },
+          }),
+          prisma.taskSubmission.findMany({
+            where: { weekId, isApproved: false },
+            skip,
+            take: pageSize,
+            include: {
+              user: { include: { userProfile: true } },
+              academicWeek: true,
+              dailyTask: true,
+              screenshots: true,
+            },
+            orderBy: {
+              submittedAt: "desc",
+            },
+          }),
+        ]);
+
+      const approvedMeta: PaginationMeta = {
+        totalItems: approvedCount,
+        totalPages: Math.ceil(approvedCount / pageSize),
+        currentPage: page,
+        pageSize,
+        hasNextPage: page * pageSize < approvedCount,
+        hasPreviousPage: page > 1,
+      };
+
+      const unapprovedMeta: PaginationMeta = {
+        totalItems: unapprovedCount,
+        totalPages: Math.ceil(unapprovedCount / pageSize),
+        currentPage: page,
+        pageSize,
+        hasNextPage: page * pageSize < unapprovedCount,
+        hasPreviousPage: page > 1,
+      };
+
+      return {
+        status: "success",
+        message: "Submissions retrieved successfully",
+        data: {
+          approved: { items: approved, meta: approvedMeta },
+          unapproved: { items: unapproved, meta: unapprovedMeta },
+        },
+      };
+    } catch (error) {
+      console.error("Error retrieving submissions:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+        data: null,
+      };
+    }
+  }
+
+  async getUserTaskSubmission(userId: string, taskId: string): Promise<ApiResponse<boolean>> {
+    try {
+      const taskSubmission = await prisma.taskSubmission.findFirst({
+        where: { userId, taskId },
+      });
+      return {
+        status: "success",
+        message: "User task submission retrieved successfully",
+        data: taskSubmission ? true : false,
+      };
+    } catch (error) {
+      console.error("Error retrieving submissions:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+        data: null,
+      };
+    }
   }
 }

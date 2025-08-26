@@ -1,13 +1,16 @@
 import { AcademicWeek } from "./cohort";
 
 export interface TaskType {
-    id: string;
-    cohortId: string;
-    name: string;
-    slug: string;
-    createdAt: string;
-    updatedAt: string;
-  };
+  id: string;
+  cohortId: string;
+  name: string;
+  slug: string;
+  requiresAttendance: boolean;
+  requiresSubmissions: boolean;
+  requiresMark: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface TaskTypeResponse {
   status: string;
@@ -24,6 +27,9 @@ export interface GetCohortTaskTypesResponse {
 export interface TaskTypeFormData {
   cohortId: string;
   name: string;
+  requiresAttendance: boolean;
+  requiresSubmissions: boolean;
+  requiresMark: boolean;
 }
 
 export interface DailyTaskFormData {
@@ -31,8 +37,8 @@ export interface DailyTaskFormData {
   dayOfWeek: number;
   taskTypeId: string;
   description: string;
-  taskLink?: string
-  taskScriptures?: string
+  taskLink?: string;
+  taskScriptures?: string;
   weekId: string;
   startTime: string;
   endTime: string;
@@ -41,17 +47,17 @@ export interface DailyTaskFormData {
 }
 
 export interface DailyTaskSchema {
-  title?: string
-  description: string
-  taskLink?: string
-  taskScriptures?: string
-  weekId: string
-  taskTypeId: string
+  title?: string;
+  description: string;
+  taskLink?: string;
+  taskScriptures?: string;
+  weekId: string;
+  taskTypeId: string;
   dayOfWeek: number;
-  hourStart: number
-  hourEnd: number
-  minuteStart?: number
-  minuteEnd?: number
+  hourStart: number;
+  hourEnd: number;
+  minuteStart?: number;
+  minuteEnd?: number;
   activated: boolean;
 }
 
@@ -70,9 +76,9 @@ export interface DailyTask {
   activated: boolean;
   createdAt: string;
   updatedAt: string;
-  academicWeek?: AcademicWeek
-  taskType?: TaskType
-  attendance?: TaskAttendance[]
+  academicWeek?: AcademicWeek;
+  taskType?: TaskType;
+  attendance?: TaskAttendance[];
 }
 
 export interface DailyTaskResponse {
@@ -82,30 +88,27 @@ export interface DailyTaskResponse {
 }
 
 export interface WeeklyTasksResponse {
-  status: string
-  message: string
-  data: DailyTask[]
+  status: string;
+  message: string;
+  data: DailyTask[];
 }
 
 export interface TaskStatusUpdateResponse {
-  status: string
-  message: string
+  status: string;
+  message: string;
 }
 
 export interface TaskAttendance {
-  id: string
-  userId: string
-  taskId: string
-  date: string
-  attendanceAt: string
-  marked: boolean
-  isLate: boolean
+  id: string;
+  userId: string;
+  taskId: string;
+  date: string;
+  attendanceAt: string;
+  marked: boolean;
+  isLate: boolean;
 }
 
 export interface CreateTaskSubmissionInput {
-  userId: string;
-  taskId: string;
-  weekId: string;
-  submission: string | null | undefined;
-  screenshots?: File[];
+  submission?: string;
+  screenshots?: { file?: FileList }[];
 }

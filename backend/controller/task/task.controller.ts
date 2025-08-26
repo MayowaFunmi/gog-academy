@@ -6,9 +6,7 @@ import {
 } from "@/backend/dto/task.dto";
 import { TaskService } from "@/backend/service/task.service";
 import { ApiResponse } from "@/backend/types/apiResponse";
-import { parseForm } from "@/backend/utils/file";
 import { NextRequest } from "next/server";
-import type { File } from "formidable";
 
 export class TaskController {
   constructor(private taskService: TaskService) {}
@@ -101,23 +99,18 @@ export class TaskController {
 
   async submitTask(request: NextRequest): Promise<ApiResponse> {
     try {
-      const { fields, files } = await parseForm(request);
-      const userId = String(fields.userId ?? "");
-      const taskId = String(fields.taskId ?? "");
-      const weekId = String(fields.weekId ?? "");
-      const submission = fields.submission ? String(fields.submission) : null;
+      const formData = await request.formData();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rawScreens = (files as any).screenshots as
-        | File
-        | File[]
-        | undefined;
+      const userId = String(formData.get("userId") ?? "");
+      const taskId = String(formData.get("taskId") ?? "");
+      const weekId = String(formData.get("weekId") ?? "");
+      const submission = formData.get("submission")
+        ? String(formData.get("submission"))
+        : null;
 
-      const screenshots: File[] = Array.isArray(rawScreens)
-        ? rawScreens.filter(Boolean)
-        : rawScreens
-        ? [rawScreens]
-        : [];
+      // Screenshots come as File objects (nullable, multiple allowed)
+      const rawScreens = formData.getAll("screenshots") as File[];
+      const screenshots = rawScreens.filter((f) => f instanceof File && f.size > 0);
 
       const validated = taskSubmissionSchema.parse({
         userId,
@@ -139,4 +132,54 @@ export class TaskController {
       };
     }
   }
+
+  async getSubmissionApproval(
+    weekId: string,
+    page: number,
+    perPage: number
+  ): Promise<ApiResponse> {
+    try {
+      return await this.taskService.getWeeklySubmissionsByApproval(
+        weekId,
+        page,
+        perPage
+      );
+    } catch (error) {
+      console.error("Unhandled controller error:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+
+  async getUserSubmissions(userId: string, taskId: string): Promise<ApiResponse> {
+    try {
+      return await this.taskService.getUserTaskSubmission(userId, taskId);
+    } catch (error) {
+      console.error("Unhandled controller error:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+
+  // async approveSubmission(
+  //   submissionId: string,
+  //   approved: boolean
+  // ): Promise<ApiResponse> {
+  //   try {
+  //     return await this.taskService.approveOrRejectSubmission(
+  //       submissionId,
+  //       approved
+  //     );
+  //   } catch (error) {
+  //     console.error("Unhandled controller error:", error);
+  //     return {
+  //       status: "error",
+  //       message: "An unexpected error occurred",
+  //     };
+  //   }
+  // }
 }

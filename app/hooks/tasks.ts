@@ -68,7 +68,7 @@ export function useTaskSubmit() {
 
 export function useGetUserTaskSubmission(taskId: string) {
   return useQuery({
-    queryKey: ["GetTaskDetails", taskId],
+    queryKey: ["GetTaskDetails"],
     queryFn: () => apiEndpointCalls.getUserTaskSubmission(taskId),
     enabled: !!taskId
   })

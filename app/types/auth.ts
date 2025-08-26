@@ -80,6 +80,7 @@ export interface RegisterFields {
   username: string
   firstName: string
   lastName: string
+  matricNumber?: string
   gender: string
   email: string
   role: string

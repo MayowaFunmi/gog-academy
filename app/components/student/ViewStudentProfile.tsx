@@ -219,6 +219,10 @@ const ViewStudentProfile = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-gray-500" />
+              <span className="break-all text-xl font-bold">{userData?.matricNumber}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-gray-500" />
               <span className="break-all">{userData?.email}</span>
             </div>
             {userData?.userProfile?.refereePhoneNumber && (

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const userRegistrationSchema = z.object({
   username: z.string().min(6, "Username must be at least 6 characters long"),
-  // matricNumber: z.string().optional(),
+  matricNumber: z.string().optional(),
   firstName: z.string().min(2, "First name must be at least 2 characters long"),
   lastName: z.string().min(2, "Last name must be at least 2 characters long"),
   gender: z.enum(["Male", "Female"]),

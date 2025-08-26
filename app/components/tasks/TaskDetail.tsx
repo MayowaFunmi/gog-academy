@@ -62,6 +62,8 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
     error: userTaskError,
   } = useGetUserTaskSubmission(taskId);
 
+  console.log(`sub = ${JSON.stringify(userTaskSubmission, null, 2)}`);
+
   useEffect(() => {
     if (taskIsError) {
       console.error("Error fetching task categories:", taskError);
@@ -151,18 +153,24 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
 
                   {role && role === "Student" && (
                     <>
-                      <button
-                        className={`px-4 py-2 text-white rounded-lg  transition 
+                      {task.data?.taskType?.requiresSubmissions && (
+                        <button
+                          className={`px-4 py-2 text-white rounded-lg  transition 
                             ${
                               userTaskSubmission?.data
                                 ? "bg-gray-500 opacity-50 cursor-not-allowed"
                                 : "bg-green-500 hover:bg-green-600"
                             }`}
-                        onClick={() => setIsOpen(true)}
-                        disabled={userTaskSubmission?.data}
-                      >
-                        {userTaskSubmission?.data ? "Submitted" : "Submit"}
-                      </button>
+                          onClick={() => setIsOpen(true)}
+                          disabled={userTaskSubmission?.data}
+                        >
+                          {userTaskSubmission?.data
+                            ? "Submitted"
+                            : new Date() < new Date(task.data.startTime)
+                            ? "Task not opened"
+                            : "Submit"}
+                        </button>
+                      )}
 
                       {task.data?.taskType?.requiresAttendance && (
                         <button

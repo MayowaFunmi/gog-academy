@@ -182,25 +182,19 @@ const Register = () => {
 
             <div>
               <label
-                htmlFor="email"
+                htmlFor="matricNumber"
                 className="block text-sm font-medium text-gray-700"
               >
-                Email
+                Matric Number (If you have)
               </label>
               <input
-                {...register("email")}
-                type="email"
-                id="email"
-                required
-                autoComplete="email"
-                placeholder="Enter your email address"
+                {...register("matricNumber")}
+                type="text"
+                id="matricNumber"
+                required={false}
+                placeholder="Enter your matric number if you have"
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               />
-              {errors.email && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.email.message}
-                </p>
-              )}
             </div>
 
             <div>
@@ -245,6 +239,28 @@ const Register = () => {
               {errors.role && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.role.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Email Address
+              </label>
+              <input
+                {...register("email")}
+                type="email"
+                id="email"
+                required
+                placeholder="Enter your email address"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.email.message}
                 </p>
               )}
             </div>

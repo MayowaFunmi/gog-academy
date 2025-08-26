@@ -70,6 +70,7 @@ export const authOptions = {
       if (trigger === "update") {
         try {
           const response = await apiEndpointCalls.getUserById(token.id)
+          token.profileStrength = response.data.user.profileStrength;
           token.userProfile = response.data.userProfile ?? null;
         } catch (error) {
           console.error("Failed to refresh profile:", error);

@@ -11,6 +11,7 @@ import { createUniqueCode } from "@/app/utils/createUniqueCode";
 import { PayloadType } from "../types/payload";
 import { signJwt } from "../providers/jwtProvider";
 import { User, UserProfile } from "@prisma/client";
+import { generateMatricNumber } from "../utils/generateMatricNumber";
 
 export class UserService {
   constructor() {}
@@ -23,6 +24,7 @@ export class UserService {
         lastName,
         gender,
         email,
+        matricNumber,
         phoneNumber,
         password,
         role,
@@ -65,6 +67,10 @@ export class UserService {
       }
 
       const uniqueId = createUniqueCode();
+      const matricNo =
+        matricNumber && matricNumber.trim() !== ""
+          ? matricNumber
+          : await generateMatricNumber();
 
       const user = await prisma.$transaction(async (tx) => {
         // Create user
@@ -76,6 +82,7 @@ export class UserService {
             lastName,
             gender,
             email,
+            matricNumber: matricNo,
             phoneNumber,
             password: hashedPassword,
             profileStrength: 30,
@@ -342,10 +349,9 @@ export class UserService {
           },
         });
 
-        const profileStrength = 70;
         await tx.user.update({
           where: { id: userId },
-          data: { profileStrength },
+          data: { profileStrength: { increment: 40 } },
         });
         return newProfile;
       });

@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import PageLoader from "../loader/pageLoader";
 import BackButton from "../ui/BackButton";
 import moment from "moment";
-import { fail_notify } from "@/app/utils/constants";
+import { fail_notify, success_notify } from "@/app/utils/constants";
 import { AxiosError } from "axios";
 import { useGetActiveUsers } from "@/app/hooks/auth";
 import SmallLoader from "../loader/SmallLoader";
@@ -14,6 +14,11 @@ import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
 import Modal from "../ui/Modal";
 import SubmitDailyTask from "../student/SubmitDailyTask";
+import {
+  useGetUserDailyTaskAttendance,
+  useMarkTaskAttendance,
+} from "@/app/hooks/attendance";
+import Button from "../ui/button";
 
 interface DailyTaskProps {
   taskId: string;
@@ -62,7 +67,41 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
     error: userTaskError,
   } = useGetUserTaskSubmission(taskId);
 
-  console.log(`sub = ${JSON.stringify(userTaskSubmission, null, 2)}`);
+  const {
+    data: userAttendance,
+    isLoading: userAttendanceLoading,
+    isError: isUserAttendanceError,
+    error: userAttendanceError,
+  } = useGetUserDailyTaskAttendance(taskId);
+
+  const {
+    mutate: markAttendance,
+    isPending: attendancePending,
+    isSuccess: isAttendanceSuccess,
+    // data: attendanceResponse,
+    isError: isAttendanceError,
+    error: attendanceError,
+  } = useMarkTaskAttendance();
+
+  const handleMarkAttendance = (taskDate: string) => {
+    markAttendance({ taskId, taskDate });
+  };
+
+  useEffect(() => {
+    if (isAttendanceSuccess) {
+      success_notify("Attendance marked successfully");
+    }
+  }, [isAttendanceSuccess]);
+
+  useEffect(() => {
+    if (isAttendanceError) {
+      console.error("Error fetching task categories:", attendanceError);
+      const errMsg =
+        (attendanceError as AxiosError).response?.data?.message ||
+        "An error occurred while fetching task categories.";
+      fail_notify(errMsg);
+    }
+  }, [attendanceError, isAttendanceError]);
 
   useEffect(() => {
     if (taskIsError) {
@@ -93,6 +132,16 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
       fail_notify(errMsg);
     }
   }, [userTaskError, isUserTaskError]);
+
+  useEffect(() => {
+    if (isUserAttendanceError) {
+      console.error("Error fetching task categories:", userAttendanceError);
+      const errMsg =
+        (userAttendanceError as AxiosError).response?.data?.message ||
+        "An error occurred while fetching task categories.";
+      fail_notify(errMsg);
+    }
+  }, [userAttendanceError, isUserAttendanceError]);
 
   return (
     <main className="w-full mt-3 px-3">
@@ -154,31 +203,53 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
                   {role && role === "Student" && (
                     <>
                       {task.data?.taskType?.requiresSubmissions && (
-                        <button
+                        <Button
                           className={`px-4 py-2 text-white rounded-lg  transition 
                             ${
-                              userTaskSubmission?.data
+                              userTaskSubmission?.data ||
+                              new Date() < new Date(task.data.startTime)
                                 ? "bg-gray-500 opacity-50 cursor-not-allowed"
                                 : "bg-green-500 hover:bg-green-600"
                             }`}
                           onClick={() => setIsOpen(true)}
-                          disabled={userTaskSubmission?.data}
+                          disabled={
+                            userTaskSubmission?.data ||
+                            new Date() < new Date(task.data.startTime)
+                          }
                         >
                           {userTaskSubmission?.data
                             ? "Submitted"
                             : new Date() < new Date(task.data.startTime)
                             ? "Task not opened"
                             : "Submit"}
-                        </button>
+                        </Button>
                       )}
 
+                      {/* use checks for attendance */}
                       {task.data?.taskType?.requiresAttendance && (
-                        <button
-                          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
-                          // onClick={() => setIsOpen(true)}
+                        <Button
+                          className={`px-4 py-2 text-white rounded-lg  transition 
+                            ${
+                              userAttendance?.data ||
+                              new Date() < new Date(task.data.startTime)
+                                ? "bg-gray-500 opacity-50 cursor-not-allowed"
+                                : "bg-green-500 hover:bg-green-600"
+                            }`}
+                          onClick={() =>
+                            handleMarkAttendance(task.data?.startTime)
+                          }
+                          disabled={
+                            userAttendance?.data ||
+                            new Date() < new Date(task.data.startTime)
+                          }
+                          isLoading={attendancePending || userAttendanceLoading}
                         >
-                          Mark Attendance
-                        </button>
+                          {userAttendance?.data
+                            ? "Marked"
+                            : new Date() < new Date(task.data.startTime)
+                            ? "Attendance not opened"
+                            : "Mark Attendance"}
+                        </Button>
                       )}
                     </>
                   )}

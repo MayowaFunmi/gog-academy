@@ -27,9 +27,9 @@ export interface GetCohortTaskTypesResponse {
 export interface TaskTypeFormData {
   cohortId: string;
   name: string;
-  requiresAttendance: boolean;
-  requiresSubmissions: boolean;
-  requiresMark: boolean;
+  requiresAttendance?: boolean;
+  requiresSubmissions?: boolean;
+  requiresMark?: boolean;
 }
 
 export interface DailyTaskFormData {

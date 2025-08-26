@@ -126,7 +126,7 @@ const AddTaskTypes: React.FC<AddTaskTypesProps> = ({
             />
           </div>
         </div>
-        <div className="flex items-start justify-between">
+        {/* <div className="flex items-start justify-between">
           <label htmlFor="requiresMark">Requires Mark: </label>
           <div>
             <Controller
@@ -148,7 +148,7 @@ const AddTaskTypes: React.FC<AddTaskTypesProps> = ({
               )}
             />
           </div>
-        </div>
+        </div> */}
         <input type="hidden" {...register("cohortId")} value={cohortId} />
         <Button
           type="submit"

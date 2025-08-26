@@ -23,6 +23,7 @@ import {
   WeeklyTasksResponse,
 } from "@/app/types/task";
 import { ProfileResponse, UserResponse } from "@/app/types/user";
+import { AttendanceFormData, AttendanceResponse } from "@/app/types/attendance";
 
 const signIn = async (data: LoginFields): Promise<AuthResponse> => {
   try {
@@ -250,6 +251,26 @@ const getUserTaskSubmission = async(taskId: string): Promise<{ status: "success"
   }
 }
 
+const markTaskAttendance = async (data: AttendanceFormData): Promise<AttendanceResponse> => {
+  try {
+    const response = await apiClient.post("/api/user/attendance/create", data)
+    return response.data as AttendanceResponse
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+}
+
+const getUserDailyTaskAttendance = async(taskId: string): Promise<{ status: "success", message: "", data: boolean}> => {
+  try {
+    const response = await apiClient.get(`/api/user/attendance/user-daily-task?taskId=${taskId}`);
+    return response.data as { status: "success", message: "", data: boolean };
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+}
+
 const apiEndpointCalls = {
   signIn,
   signUp,
@@ -271,7 +292,9 @@ const apiEndpointCalls = {
   getUserProfile,
   getUserById,
   submitTask,
-  getUserTaskSubmission
+  getUserTaskSubmission,
+  markTaskAttendance,
+  getUserDailyTaskAttendance
 };
 
 export default apiEndpointCalls;

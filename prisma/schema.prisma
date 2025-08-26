@@ -40,6 +40,7 @@ model User {
   userProfile     UserProfile?
   isActive        Boolean          @default(false) @map("is_active")
   lastLogin       DateTime?        @map("last_login")
+  attendance      Attendance[]
   TaskSubmission  TaskSubmission[]
 
   @@map("users")
@@ -109,7 +110,7 @@ model UserProfile {
   refereeEmail               String      @map("referee_email")
   refereeRelationship        String      @map("referee_relationship")
   user                       User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  attendance                 Attendance?
+  // attendance                 Attendance?
   consentCheck               Boolean     @default(false) @map("consent_check")
 
   @@map("user_profiles")
@@ -206,7 +207,7 @@ model TaskSubmission {
   academicWeek AcademicWeek           @relation(fields: [weekId], references: [id])
   screenshots  SubmissionScreenshot[]
 
-  @@unique([userId, taskId])
+  // @@unique([userId, taskId])
   @@map("task_submission")
 }
 
@@ -223,16 +224,16 @@ model SubmissionScreenshot {
 
 model Attendance {
   id         String   @id @default(uuid())
-  userId     String   @unique
+  userId     String
   taskId     String
   date       DateTime
   attendedAt DateTime @default(now()) @map("attended_at")
   marked     Boolean  @default(false)
   isLate     Boolean  @default(false)
+  score      Int
 
-  user UserProfile @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
   task DailyTask   @relation(fields: [taskId], references: [id])
 
-  @@unique([userId, taskId, date])
   @@map("attendance")
 }

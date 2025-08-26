@@ -22,7 +22,7 @@ export function useAddCohort() {
   return useMutation({
     mutationFn: (data: CohortFormData) => apiEndpointCalls.addCohort(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["GetAllCohorts"]})
+      queryClient.invalidateQueries({ queryKey: ["GetAllCohorts", "CurrentCohort"]})
     }
   })
 }

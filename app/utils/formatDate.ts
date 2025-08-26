@@ -50,7 +50,7 @@ export const calculateWeeks = (startDate: string, endDate: string) => {
   if (startDate && endDate) {
     const start = parseISO(startDate);
     const end = parseISO(endDate);
-    const weeks = differenceInWeeks(end, start);
+    const weeks = differenceInWeeks(end, start) + 1;
     return weeks > 0 ? `${weeks} week${weeks > 1 ? "s" : ""}` : "Less than a week";
   }
   return "Invalid date range";

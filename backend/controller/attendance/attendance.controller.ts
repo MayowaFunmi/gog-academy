@@ -31,4 +31,19 @@ export class AttendanceController {
       };
     }
   }
+
+  async getDailyTaskAttendanceForUser(taskId: string, userId: string) {
+    try {
+      return await this.attendanceService.getUserDailyTaskAttendance(
+        userId,
+        taskId
+      );
+    } catch (error) {
+      console.error("Unhandled controller error:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+      };
+    }
+  }
 }

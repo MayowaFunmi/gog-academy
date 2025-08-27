@@ -57,7 +57,7 @@ export const userProfileSchema = z.object({
     .min(1, { message: "Address cannot be empty" }),
   stateOfResidence: z
     .string()
-    .min(1, { message: "State of residence is required" }),
+    .optional(),
   country: z.string().min(1, { message: "Country is required" }),
   maritalStatus: z.string().min(1, { message: "Marital status is required" }),
   salvationStatus: z
@@ -71,7 +71,7 @@ export const userProfileSchema = z.object({
   }),
   gogMembershipYear: z
     .string()
-    .min(1, { message: "GOG membership year is required" }),
+    .optional(),
   classCommitmentStatus: z
     .boolean({
     required_error: "You must agree to commit yourself to attending GOG academy classes",

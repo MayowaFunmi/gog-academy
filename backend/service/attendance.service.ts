@@ -1,4 +1,4 @@
-import { isSameDay, isBefore, startOfDay, isAfter } from "date-fns";
+import { isBefore, startOfDay, isAfter } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { ApiResponse } from "../types/apiResponse";
 
@@ -10,7 +10,7 @@ export class AttendanceService {
     taskId: string,
     taskDate: string
   ): Promise<ApiResponse> {
-    console.log(`task date = ${taskDate}`)
+    // console.log(`task date = ${taskDate}`)
     try {
       const sentDate = new Date(taskDate);
       const today = new Date();

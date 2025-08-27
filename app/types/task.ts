@@ -1,3 +1,4 @@
+import { User } from "./auth";
 import { AcademicWeek } from "./cohort";
 
 export interface TaskType {
@@ -79,6 +80,21 @@ export interface DailyTask {
   academicWeek?: AcademicWeek;
   taskType?: TaskType;
   attendance?: TaskAttendance[];
+  taskSubmissions?: TaskSubmission[]
+}
+
+export interface TaskSubmission {
+  id: string
+  userId: string
+  taskId: string
+  weekId: string
+  submission?: string | null
+  score?: number | null
+  submittedAt: string
+  isSubmitted: boolean
+  isLate: boolean
+  screenshots?: string[] | null
+  user?: User
 }
 
 export interface DailyTaskResponse {
@@ -106,6 +122,7 @@ export interface TaskAttendance {
   attendanceAt: string;
   marked: boolean;
   isLate: boolean;
+  user?: User
 }
 
 export interface CreateTaskSubmissionInput {

@@ -31,7 +31,8 @@ import { fail_notify, success_notify } from "@/app/utils/constants";
 import { AxiosError } from "axios";
 import Button from "../ui/button";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import { useSignOutUser } from "@/app/hooks/auth";
 
 const CreateStudentProfile = () => {
   const router = useRouter();
@@ -184,7 +185,7 @@ const CreateStudentProfile = () => {
       setStep((prev) => prev + 1);
     } else {
       const finalData = loadProfileData();
-      console.log(`profile = ${JSON.stringify(finalData, null, 2)}`);
+      // console.log(`profile = ${JSON.stringify(finalData, null, 2)}`);
       const payload = {
         ...finalData,
         cohortId: currentCohort?.data?.id,
@@ -197,6 +198,18 @@ const CreateStudentProfile = () => {
   const statusOfSalvation = watch("salvationStatus");
 
   const { data: session } = useSession();
+
+  const { mutate: logOut, isSuccess } = useSignOutUser();
+  const handleSignOut = () => {
+    logOut();
+  };
+
+  useEffect(() => {
+    if (isSuccess) {
+      success_notify("Please log in again to continue");
+      signOut({ callbackUrl: "/auth/login" });
+    }
+  }, [isSuccess]);
 
   useEffect(() => {
     if (session?.user?.userProfile) {
@@ -233,14 +246,14 @@ const CreateStudentProfile = () => {
           Object.values(LOCAL_STORAGE_KEYS).forEach((key) => {
             localStorage.removeItem(key);
           });
-          router.push("/student/dashboard");
+          handleSignOut();
         })
         .catch((err) => {
           console.error("Error updating session:", err);
         });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [createSuccess, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createSuccess]);
 
   return (
     <div className="my-3 px-3 w-full">
@@ -510,15 +523,15 @@ const CreateStudentProfile = () => {
                   type="text"
                   id="gogMembershipYear"
                   autoComplete="gogMembershipYear"
-                  required
+                  required={false}
                   className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
                   placeholder="Enter year"
                 />
-                {errors.gogMembershipYear && (
+                {/* {errors.gogMembershipYear && (
                   <p className="text-red-500 text-xs mt-1">
                     {errors.gogMembershipYear.message}
                   </p>
-                )}
+                )} */}
               </div>
 
               <div>

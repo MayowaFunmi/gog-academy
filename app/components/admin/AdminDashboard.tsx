@@ -9,7 +9,11 @@ import { AxiosError } from "axios";
 import { fail_notify } from "@/app/utils/constants";
 import PageLoader from "../loader/pageLoader";
 import moment from "moment";
-import { calculateDuration, calculateWeeks, getDateStatus } from "@/app/utils/formatDate";
+import {
+  // calculateDuration,
+  calculateWeeks,
+  getDateStatus,
+} from "@/app/utils/formatDate";
 import Modal from "../ui/Modal";
 import AddCohort from "../cohorts/AddCohort";
 import { FaCircle } from "react-icons/fa6";
@@ -140,10 +144,18 @@ const AdminDashboard = () => {
                   className="w-1/2 rounded-md bg-pink-600 px-4 py-2 text-white font-medium hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
                   onClick={() => setIsTaskOpen(true)}
                 >
-                  Add task categories to {selectedCohort?.data?.cohort} Batch{" "}
-                  {selectedCohort?.data?.batch}
+                  Add task categories
+                  {/* Add task categories to {selectedCohort?.data?.cohort} Batch{" "}
+                  {selectedCohort?.data?.batch} */}
                 </Button>
               )}
+
+              <Button
+                className="w-1/2 rounded-md bg-pink-600 px-4 py-2 text-white font-medium hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                // onClick={() => setIsOpen(true)}
+              >
+                Create battalion
+              </Button>
             </div>
           </div>
 
@@ -184,7 +196,7 @@ const AdminDashboard = () => {
                   </div>
 
                   <div
-                    className={`rounded-lg overflow-hidden shadow-lg relative ${cardColors[1]}`}
+                    className={`rounded-lg overflow-hidden shadow-lg relative ${cardColors[2]}`}
                   >
                     <div className="p-4 flex flex-col items-start space-y-6">
                       <h3 className="text-lg font-semibold text-white">
@@ -192,7 +204,7 @@ const AdminDashboard = () => {
                       </h3>
                       {/* registered candidates for current cohort */}
                       <div className="flex items-center gap-2 text-white text-2xl font-bold">
-                        <span>{selectedCohort?.data?.userCount}</span>
+                        <span>{selectedCohort?.data?.userCount} Students</span>
                       </div>
                     </div>
                     <div className="absolute top-0 right-0 p-2 flex flex-col items-end gap-4">
@@ -208,7 +220,7 @@ const AdminDashboard = () => {
                   </div>
 
                   <div
-                    className={`rounded-lg overflow-hidden shadow-lg relative ${cardColors[2]}`}
+                    className={`rounded-lg overflow-hidden shadow-lg relative ${cardColors[1]}`}
                   >
                     <div className="p-4 flex flex-col items-start space-y-6">
                       <h3 className="text-lg font-semibold text-white">
@@ -261,10 +273,12 @@ const AdminDashboard = () => {
                           )}
                         </span> */}
                         <span>
-                          {calculateWeeks(
-                            selectedCohort?.data?.startDate ?? "",
-                            selectedCohort?.data?.endDate ?? ""
-                          )}
+                          {selectedCohort?.data?.startDate &&
+                            selectedCohort?.data?.endDate &&
+                            calculateWeeks(
+                              selectedCohort?.data?.startDate ?? "",
+                              selectedCohort?.data?.endDate ?? ""
+                            )}
                         </span>
                       </div>
                     </div>

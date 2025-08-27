@@ -374,11 +374,18 @@ export class TaskService {
       const task = await prisma.dailyTask.findUnique({
         where: { id: taskId },
         include: {
-          attendance: true,
-          taskSubmissions: true,
+          attendance: { include: { user: true } },
+          taskSubmissions: { include: { user: true, screenshots: true } },
           taskType: true,
         },
       });
+
+      if (!task) {
+        return {
+          status: "notFound",
+          message: "Task not found",
+        };
+      }
       return {
         status: "success",
         message: "Daily Task details retrieved successfully",
@@ -441,12 +448,12 @@ export class TaskService {
           };
         }
 
-        const buffer = Buffer.from(await file.arrayBuffer())
-        const uniqueName = `${Date.now()}-${file.name}`
-        const savePath = path.join(uploadDir, uniqueName)
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const uniqueName = `${Date.now()}-${file.name}`;
+        const savePath = path.join(uploadDir, uniqueName);
 
-        fs.writeFileSync(savePath, buffer)
-        savedPaths.push(path.relative(process.cwd(), savePath))
+        fs.writeFileSync(savePath, buffer);
+        savedPaths.push(path.relative(process.cwd(), savePath));
       }
     }
 
@@ -460,8 +467,8 @@ export class TaskService {
           weekId,
           submission: submission ?? null,
           isLate,
-          score: 5,
-          isSubmitted: true
+          // score: 5,
+          isSubmitted: true,
         },
       });
 
@@ -586,7 +593,10 @@ export class TaskService {
     }
   }
 
-  async getUserTaskSubmission(userId: string, taskId: string): Promise<ApiResponse<boolean>> {
+  async getUserTaskSubmission(
+    userId: string,
+    taskId: string
+  ): Promise<ApiResponse<boolean>> {
     try {
       const taskSubmission = await prisma.taskSubmission.findFirst({
         where: { userId, taskId },

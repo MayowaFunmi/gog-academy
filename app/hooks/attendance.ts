@@ -6,8 +6,8 @@ export function useMarkTaskAttendance() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: AttendanceFormData) => apiEndpointCalls.markTaskAttendance(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["GetTaskDetails"]})
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["GetUserDailyTaskAttendance", variables.taskId]})
     }
   })
 }

@@ -5,7 +5,11 @@ import {
   CreateDailyTaskDto,
   CreateTaskSubmissionInput,
 } from "../dto/task.dto";
-import { ApiResponse, PaginationMeta } from "../types/apiResponse";
+import {
+  ApiResponse,
+  DailyTaskDetails,
+  PaginationMeta,
+} from "../types/apiResponse";
 import { slugify } from "../utils/slugify";
 import { addDays, differenceInDays } from "date-fns";
 import { removeHour } from "../utils/dateFormat";
@@ -369,13 +373,11 @@ export class TaskService {
     }
   }
 
-  async getTaskById(taskId: string): Promise<ApiResponse<DailyTask>> {
+  async getStudentTaskById(taskId: string): Promise<ApiResponse<DailyTask>> {
     try {
       const task = await prisma.dailyTask.findUnique({
         where: { id: taskId },
         include: {
-          attendance: { include: { user: true } },
-          taskSubmissions: { include: { user: true, screenshots: true } },
           taskType: true,
         },
       });
@@ -386,10 +388,98 @@ export class TaskService {
           message: "Task not found",
         };
       }
+
+      return {
+        status: "success",
+        message: "Task retrieved successfully",
+        data: task,
+      };
+    } catch (error) {
+      console.error("Error logging out user:", error);
+
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+        data: null,
+      };
+    }
+  }
+
+  async getTaskById(
+    taskId: string,
+    attendancePage: number = 1,
+    attendancePageSize: number = 10,
+    submissionPage: number = 1,
+    submissionPageSize: number = 10
+  ): Promise<ApiResponse<DailyTaskDetails>> {
+    try {
+      const [
+        task,
+        totalAttendance,
+        attendance,
+        totalSubmissions,
+        taskSubmissions,
+      ] = await prisma.$transaction([
+        prisma.dailyTask.findUnique({
+          where: { id: taskId },
+          include: {
+            taskType: true,
+          },
+        }),
+
+        prisma.attendance.count({ where: { taskId } }),
+        prisma.attendance.findMany({
+          where: { taskId },
+          include: { user: true },
+          skip: (attendancePage - 1) * attendancePageSize,
+          take: attendancePageSize,
+          orderBy: { attendedAt: "desc" },
+        }),
+        prisma.taskSubmission.count({ where: { taskId } }),
+        prisma.taskSubmission.findMany({
+          where: { taskId },
+          include: { user: true, screenshots: true },
+          skip: (submissionPage - 1) * submissionPageSize,
+          take: submissionPageSize,
+          orderBy: { submittedAt: "desc" },
+        }),
+      ]);
+
+      if (!task) {
+        return {
+          status: "notFound",
+          message: "Task not found",
+        };
+      }
+
+      const attendanceMeta: PaginationMeta = {
+        totalItems: totalAttendance,
+        totalPages: Math.ceil(totalAttendance / attendancePageSize),
+        currentPage: attendancePage,
+        pageSize: attendancePageSize,
+        hasNextPage: attendancePage * attendancePageSize < totalAttendance,
+        hasPreviousPage: attendancePage > 1,
+      };
+
+      const submissionsMeta: PaginationMeta = {
+        totalItems: totalSubmissions,
+        totalPages: Math.ceil(totalSubmissions / submissionPageSize),
+        currentPage: submissionPage,
+        pageSize: submissionPageSize,
+        hasNextPage: submissionPage * submissionPageSize < totalSubmissions,
+        hasPreviousPage: submissionPage > 1,
+      };
+
       return {
         status: "success",
         message: "Daily Task details retrieved successfully",
-        data: task,
+        data: {
+          ...task,
+          attendance,
+          attendanceMeta,
+          taskSubmissions,
+          submissionsMeta,
+        },
       };
     } catch (error) {
       console.error("Error logging out user:", error);
@@ -493,6 +583,49 @@ export class TaskService {
       message: "Task submission created successfully",
       data: submissionRecord,
     };
+  }
+
+  async approveTaskSubmission(submissionId: string): Promise<ApiResponse> {
+    try {
+      const submission = await prisma.taskSubmission.findUnique({
+        where: { id: submissionId },
+      });
+
+      if (!submission) {
+        return {
+          status: "notFound",
+          message: "Submission not found",
+        };
+      }
+
+      const updatedSubmission = await prisma.$transaction(async (tx) => {
+        return await tx.taskSubmission.update({
+          where: { id: submissionId },
+          data: {
+            isApproved: !submission.isApproved,
+            score: submission.isApproved
+              ? { decrement: 5 } // was approved, now disapproving → decrease
+              : { increment: 5 }, // was not approved, now approving → increase
+          },
+        });
+      });
+
+      const message = updatedSubmission.isApproved
+        ? "Submission approved successfully"
+        : "Submission rejected";
+
+      return {
+        status: "success",
+        message: message,
+      };
+    } catch (error) {
+      console.error("Error logging out user:", error);
+      return {
+        status: "error",
+        message: "An unexpected error occurred",
+        data: null,
+      };
+    }
   }
 
   async getWeeklySubmissionsByApproval(

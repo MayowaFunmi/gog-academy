@@ -17,8 +17,25 @@ const taskById = async (
         { status: 500 }
       );
     }
-    const apiResponse = await taskController.getTaskDetail(taskId)
-    return NextResponse.json(apiResponse)
+    const { searchParams } = new URL(request.url);
+    const attendancePageParam = searchParams.get("attendancePage")
+    const attendancePageSizeParam = searchParams.get("attendancePageSize")
+    const submissionPageParam = searchParams.get("submissionPage")
+    const submissionPageSizeParam = searchParams.get("submissionPageSize")
+
+    const attendancePage = attendancePageParam ? parseInt(attendancePageParam, 10) : 1;
+    const attendancePageSize = attendancePageSizeParam ? parseInt(attendancePageSizeParam, 10) : 10;
+    const submissionPage = submissionPageParam ? parseInt(submissionPageParam, 10) : 1;
+    const submissionPageSize = submissionPageSizeParam ? parseInt(submissionPageSizeParam, 10) : 10;
+
+    const apiResponse = await taskController.getTaskDetail(
+      taskId,
+      attendancePage,
+      attendancePageSize,
+      submissionPage,
+      submissionPageSize
+    );
+    return NextResponse.json(apiResponse);
   } catch (error) {
     console.error("Error:", error);
     return NextResponse.json(
@@ -31,4 +48,4 @@ const taskById = async (
   }
 };
 
-export const GET = authMiddleware(taskById)
+export const GET = authMiddleware(taskById, ["SuperAdmin"]);

@@ -1,6 +1,5 @@
 const env: string = process.env.NEXT_PUBLIC_ENV?.trim().toLowerCase() || "";
 
-
 export const isLocalHost = () => env === "localhost";
 export const isDev = () => env === "dev";
 export const isProd = () => env === "prod";
@@ -10,4 +9,11 @@ export const getApiEndpoint = (): string => {
     return ""
   }
   return "http://localhost:3000"
+}
+
+export const getFrontendUrl = () => {
+  if (isDev()) {
+    return "http://localhost:3000"
+  }
+  return ""
 }

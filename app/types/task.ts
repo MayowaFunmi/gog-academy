@@ -1,3 +1,4 @@
+import { PaginationMeta } from "@/backend/types/apiResponse";
 import { User } from "./auth";
 import { AcademicWeek } from "./cohort";
 
@@ -80,7 +81,16 @@ export interface DailyTask {
   academicWeek?: AcademicWeek;
   taskType?: TaskType;
   attendance?: TaskAttendance[];
+  attendanceMeta?: PaginationMeta
   taskSubmissions?: TaskSubmission[]
+  submissionsMeta?: PaginationMeta
+}
+
+export interface ScreenshotsData {
+  id: string
+  submissionId: string
+  filePath: string
+  uploadedAt: string
 }
 
 export interface TaskSubmission {
@@ -93,7 +103,8 @@ export interface TaskSubmission {
   submittedAt: string
   isSubmitted: boolean
   isLate: boolean
-  screenshots?: string[] | null
+  isApproved: boolean
+  screenshots?: ScreenshotsData[] | null
   user?: User
 }
 

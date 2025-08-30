@@ -1,3 +1,5 @@
+import { AcademyTaskType, Attendance, DailyTask, TaskSubmission } from "@prisma/client";
+
 export type StatusType =
   | "success"
   | "error"
@@ -25,4 +27,12 @@ export interface PaginationMeta {
 export interface PaginatedResult<T> {
   items: T[];
   meta: PaginationMeta;
+}
+
+export interface DailyTaskDetails extends DailyTask {
+  taskType?: AcademyTaskType
+  attendance?: Attendance[]
+  attendanceMeta?: PaginationMeta
+  taskSubmissions?: TaskSubmission[]
+  submissionsMeta?: PaginationMeta
 }

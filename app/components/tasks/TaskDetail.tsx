@@ -19,6 +19,7 @@ import {
   useMarkTaskAttendance,
 } from "@/app/hooks/attendance";
 import Button from "../ui/button";
+import AdminTaskTables from "../admin/AdminTaskTables";
 
 interface DailyTaskProps {
   taskId: string;
@@ -28,9 +29,13 @@ interface DailyTaskProps {
 const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
   const { data: session } = useSession();
   const userSession = session && session?.user;
-  const role = userSession?.roles[0];
+  const role = userSession?.roles[0] ?? "";
   const userId = userSession?.id;
   const [isOpen, setIsOpen] = useState(false);
+  const [attendancePage, setAttendancePage] = useState<string>("1")
+  const [attendancePageSize, setAttendancePageSize] = useState<string>("10")
+  const [submissionPage, setSubmissionPage] = useState<string>("1")
+  const [submissionPageSize, setSubmissionPageSize] = useState<string>("10")
 
   const handleCloseModal = () => {
     setIsOpen(false);
@@ -51,7 +56,7 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
     isLoading: taskLoading,
     isError: taskIsError,
     error: taskError,
-  } = useGetTaskById(taskId);
+  } = useGetTaskById(taskId, role, attendancePage, attendancePageSize, submissionPage, submissionPageSize);
 
   const {
     data: activeUsers,
@@ -85,6 +90,17 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
 
   const handleMarkAttendance = (taskDate: string) => {
     markAttendance({ taskId, taskDate });
+  };
+
+  const onAttendancePageChange = (p: number) => setAttendancePage(String(p));
+  const onAttendancePageSizeChange = (s: number) => {
+    setAttendancePageSize(String(s));
+    setAttendancePage("1");
+  };
+  const onSubmissionsPageChange = (p: number) => setSubmissionPage(String(p));
+  const onSubmissionsPageSizeChange = (s: number) => {
+    setSubmissionPageSize(String(s));
+    setSubmissionPage("1");
   };
 
   useEffect(() => {
@@ -149,8 +165,8 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
         <BackButton />
       </div>
 
-      <div className="flex justify-center space-x-2">
-        <div className="w-1/2 mx-auto">
+      <div className="w-full flex justify-center gap-3">
+        <div className="w-1/2 mx-auto bg-white shadow-md rounded-lg p-3">
           {taskLoading ? (
             <PageLoader />
           ) : (
@@ -205,11 +221,10 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
                       {task.data?.taskType?.requiresSubmissions && (
                         <Button
                           className={`px-4 py-2 text-white rounded-lg  transition 
-                            ${
-                              userTaskSubmission?.data ||
+                            ${userTaskSubmission?.data ||
                               new Date() < new Date(task.data.startTime)
-                                ? "bg-gray-500 opacity-50 cursor-not-allowed"
-                                : "bg-green-500 hover:bg-green-600"
+                              ? "bg-gray-500 opacity-50 cursor-not-allowed"
+                              : "bg-green-500 hover:bg-green-600"
                             }`}
                           onClick={() => setIsOpen(true)}
                           disabled={
@@ -220,8 +235,8 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
                           {userTaskSubmission?.data
                             ? "Submitted"
                             : new Date() < new Date(task.data.startTime)
-                            ? "Task not opened"
-                            : "Submit"}
+                              ? "Task not opened"
+                              : "Submit"}
                         </Button>
                       )}
 
@@ -229,11 +244,10 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
                       {task.data?.taskType?.requiresAttendance && (
                         <Button
                           className={`px-4 py-2 text-white rounded-lg  transition 
-                            ${
-                              userAttendance?.data ||
+                            ${userAttendance?.data ||
                               new Date() < new Date(task.data.startTime)
-                                ? "bg-gray-500 opacity-50 cursor-not-allowed"
-                                : "bg-green-500 hover:bg-green-600"
+                              ? "bg-gray-500 opacity-50 cursor-not-allowed"
+                              : "bg-green-500 hover:bg-green-600"
                             }`}
                           onClick={() =>
                             handleMarkAttendance(task.data?.startTime)
@@ -247,8 +261,8 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
                           {userAttendance?.data
                             ? "Marked"
                             : new Date() < new Date(task.data.startTime)
-                            ? "Attendance not opened"
-                            : "Mark Attendance"}
+                              ? "Attendance not opened"
+                              : "Mark Attendance"}
                         </Button>
                       )}
                     </>
@@ -259,7 +273,7 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
           )}
         </div>
 
-        <div className="w-1/2">
+        <div className="w-1/2 mx-auto bg-white shadow-md rounded-lg p-3">
           <div className="text-2xl font-semibold text-gray-800">
             Active Users
           </div>
@@ -267,8 +281,8 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
           {usersLoading && <SmallLoader />}
           <div className="flex flex-wrap gap-6">
             {activeUsers?.status === "success" &&
-            activeUsers?.data &&
-            usersSuccess ? (
+              activeUsers?.data &&
+              usersSuccess ? (
               activeUsers.data.map((user) => (
                 <div key={user.id} className="flex flex-col items-center">
                   {/* Avatar Circle */}
@@ -290,6 +304,21 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
           </div>
         </div>
       </div>
+
+      {role === "SuperAdmin" && task?.status === "success" && task?.data && (
+        <div className="mt-8">
+          <AdminTaskTables
+            role={role}
+            task={task.data}
+            attendanceMeta={task.data.attendanceMeta}
+            submissionsMeta={task.data.submissionsMeta}
+            onAttendancePageChange={onAttendancePageChange}
+            onAttendancePageSizeChange={onAttendancePageSizeChange}
+            onSubmissionsPageChange={onSubmissionsPageChange}
+            onSubmissionsPageSizeChange={onSubmissionsPageSizeChange}
+          />
+        </div>
+      )}
 
       {isOpen && (
         <Modal

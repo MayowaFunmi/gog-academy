@@ -133,9 +133,33 @@ const addDailyTask = async (
   }
 };
 
-const getTaskById = async (taskId: string): Promise<DailyTaskResponse> => {
+const getStudentTaskDetail = async (taskId: string): Promise<DailyTaskResponse> => {
   try {
-    const response = await apiClient.get(`/api/task/${taskId}`);
+    const response = await apiClient.get(`/api/task/student/${taskId}`);
+    return response.data as DailyTaskResponse;
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+};
+
+const getTaskById = async (
+  taskId: string,
+  attendancePage: string,
+  attendancePageSize: string,
+  submissionPage: string,
+  submissionPageSize: string
+): Promise<DailyTaskResponse> => {
+  try {
+    const queryParams = new URLSearchParams({
+      attendancePage: `${attendancePage}`,
+      attendancePageSize: `${attendancePageSize}`,
+      submissionPage: `${submissionPage}`,
+      submissionPageSize: `${submissionPageSize}`,
+    });
+    const response = await apiClient.get(
+      `/api/task/${taskId}?${queryParams.toString()}`
+    );
     return response.data as DailyTaskResponse;
   } catch (error) {
     console.error("API error:", error);
@@ -173,7 +197,19 @@ const updateTaskStatus = async (
   taskId: string
 ): Promise<TaskStatusUpdateResponse> => {
   try {
-    const response = await apiClient.patch(`/api/task/update-status/${taskId}`);
+    const response = await apiClient.patch(`/api/task/update-status`, { taskId });
+    return response.data as TaskStatusUpdateResponse;
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+};
+
+const approveSubmission = async (
+  submissionId: string
+): Promise<TaskStatusUpdateResponse> => {
+  try {
+    const response = await apiClient.patch(`/api/task/submissions/approve`, { submissionId });
     return response.data as TaskStatusUpdateResponse;
   } catch (error) {
     console.error("API error:", error);
@@ -241,35 +277,45 @@ const submitTask = async (data: FormData) => {
   }
 };
 
-const getUserTaskSubmission = async(taskId: string): Promise<{ status: "success", message: "", data: boolean}> => {
+const getUserTaskSubmission = async (
+  taskId: string
+): Promise<{ status: "success"; message: ""; data: boolean }> => {
   try {
-    const response = await apiClient.get(`/api/task/check-user-task-submission?taskId=${taskId}`);
-    return response.data as { status: "success", message: "", data: boolean };
+    const response = await apiClient.get(
+      `/api/task/check-user-task-submission?taskId=${taskId}`
+    );
+    return response.data as { status: "success"; message: ""; data: boolean };
   } catch (error) {
     console.error("API error:", error);
     throw error;
   }
-}
+};
 
-const markTaskAttendance = async (data: AttendanceFormData): Promise<AttendanceResponse> => {
+const markTaskAttendance = async (
+  data: AttendanceFormData
+): Promise<AttendanceResponse> => {
   try {
-    const response = await apiClient.post("/api/user/attendance/create", data)
-    return response.data as AttendanceResponse
+    const response = await apiClient.post("/api/user/attendance/create", data);
+    return response.data as AttendanceResponse;
   } catch (error) {
     console.error("API error:", error);
     throw error;
   }
-}
+};
 
-const getUserDailyTaskAttendance = async(taskId: string): Promise<{ status: "success", message: "", data: boolean}> => {
+const getUserDailyTaskAttendance = async (
+  taskId: string
+): Promise<{ status: "success"; message: ""; data: boolean }> => {
   try {
-    const response = await apiClient.get(`/api/user/attendance/user-daily-task?taskId=${taskId}`);
-    return response.data as { status: "success", message: "", data: boolean };
+    const response = await apiClient.get(
+      `/api/user/attendance/user-daily-task?taskId=${taskId}`
+    );
+    return response.data as { status: "success"; message: ""; data: boolean };
   } catch (error) {
     console.error("API error:", error);
     throw error;
   }
-}
+};
 
 const apiEndpointCalls = {
   signIn,
@@ -294,7 +340,9 @@ const apiEndpointCalls = {
   submitTask,
   getUserTaskSubmission,
   markTaskAttendance,
-  getUserDailyTaskAttendance
+  getUserDailyTaskAttendance,
+  getStudentTaskDetail,
+  approveSubmission
 };
 
 export default apiEndpointCalls;

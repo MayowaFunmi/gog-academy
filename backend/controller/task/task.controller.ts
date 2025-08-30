@@ -69,12 +69,36 @@ export class TaskController {
     return await this.taskService.getTasksForWeek(weekId);
   }
 
-  async getTaskDetail(taskId: string): Promise<ApiResponse> {
-    return await this.taskService.getTaskById(taskId);
+  async getStudentTaskDetail(taskId: string): Promise<ApiResponse> {
+    return await this.taskService.getStudentTaskById(taskId)
   }
 
-  async updateTaskActivation(taskId: string): Promise<ApiResponse> {
+  async getTaskDetail(
+    taskId: string,
+    attendancePage: number,
+    attendancePageSize: number,
+    submissionPage: number,
+    submissionPageSize: number
+  ): Promise<ApiResponse> {
+    return await this.taskService.getTaskById(
+      taskId,
+      attendancePage,
+      attendancePageSize,
+      submissionPage,
+      submissionPageSize
+    );
+  }
+
+  async updateTaskActivation(request: NextRequest): Promise<ApiResponse> {
     try {
+      const body = await request.json();
+      const { taskId } = body;
+      if (!taskId) {
+        return {
+          status: "error",
+          message: "Task ID is required",
+        };
+      }
       return await this.taskService.activateDailyTask(taskId);
     } catch (error) {
       console.error("Unhandled controller error:", error);
@@ -110,7 +134,9 @@ export class TaskController {
 
       // Screenshots come as File objects (nullable, multiple allowed)
       const rawScreens = formData.getAll("screenshots") as File[];
-      const screenshots = rawScreens.filter((f) => f instanceof File && f.size > 0);
+      const screenshots = rawScreens.filter(
+        (f) => f instanceof File && f.size > 0
+      );
 
       const validated = taskSubmissionSchema.parse({
         userId,
@@ -133,6 +159,18 @@ export class TaskController {
     }
   }
 
+  async approveSubmission(request: NextRequest): Promise<ApiResponse> {
+    const body = await request.json();
+    const { submissionId } = body;
+    if (!submissionId) {
+      return {
+        status: "error",
+        message: "Submission ID is required",
+      };
+    }
+    return await this.taskService.approveTaskSubmission(submissionId);
+  }
+
   async getSubmissionApproval(
     weekId: string,
     page: number,
@@ -153,7 +191,10 @@ export class TaskController {
     }
   }
 
-  async getUserSubmissions(userId: string, taskId: string): Promise<ApiResponse> {
+  async getUserSubmissions(
+    userId: string,
+    taskId: string
+  ): Promise<ApiResponse> {
     try {
       return await this.taskService.getUserTaskSubmission(userId, taskId);
     } catch (error) {

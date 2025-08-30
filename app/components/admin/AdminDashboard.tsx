@@ -150,12 +150,14 @@ const AdminDashboard = () => {
                 </Button>
               )}
 
-              <Button
-                className="w-1/2 rounded-md bg-pink-600 px-4 py-2 text-white font-medium hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
+              {selectedCohort && (
+                <Button
+                  className="w-1/2 rounded-md bg-pink-600 px-4 py-2 text-white font-medium hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
                 // onClick={() => setIsOpen(true)}
-              >
-                Create battalion
-              </Button>
+                >
+                  Create battalion
+                </Button>
+              )}
             </div>
           </div>
 
@@ -232,16 +234,16 @@ const AdminDashboard = () => {
                           Start:{" "}
                           {selectedCohort?.data?.startDate
                             ? moment(selectedCohort.data.startDate).format(
-                                "MMM D, YYYY"
-                              )
+                              "MMM D, YYYY"
+                            )
                             : "—"}
                         </span>
                         <span>
                           End:{" "}
                           {selectedCohort?.data?.endDate
                             ? moment(selectedCohort.data.endDate).format(
-                                "MMM D, YYYY"
-                              )
+                              "MMM D, YYYY"
+                            )
                             : "—"}
                         </span>
                       </div>

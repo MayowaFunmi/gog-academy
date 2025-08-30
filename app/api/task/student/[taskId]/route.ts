@@ -2,12 +2,11 @@ import { taskController } from "@/backend/controller/task/task.module";
 import { authMiddleware } from "@/backend/utils/authMiddleware";
 import { NextRequest, NextResponse } from "next/server";
 
-const updateTaskActivation = async (
+const studentTaskDetail = async (
   request: NextRequest,
-  context: { params: Promise<{ taskId: string }> }
+    context: { params: Promise<{ taskId: string }> }
 ): Promise<NextResponse> => {
   try {
-    // const taskId = context.params.taskId;
     const { taskId } = await context.params;
     if (!taskId) {
       return NextResponse.json(
@@ -18,18 +17,18 @@ const updateTaskActivation = async (
         { status: 500 }
       );
     }
-    const apiResponse = await taskController.updateTaskActivation(taskId);
+    const apiResponse = await taskController.getStudentTaskDetail(taskId)
     return NextResponse.json(apiResponse);
   } catch (error) {
-    console.error("Error during logout:", error);
+    console.error("Error:", error);
     return NextResponse.json(
       {
         status: "error",
-        message: "An unexpected error occurred during logout",
+        message: "An unexpected error occurred",
       },
       { status: 500 }
     );
   }
-};
+}
 
-export const PATCH = authMiddleware(updateTaskActivation, ["SuperAdmin"]);
+export const GET = authMiddleware(studentTaskDetail, ["Student"]);

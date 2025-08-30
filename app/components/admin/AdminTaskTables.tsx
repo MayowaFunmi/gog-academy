@@ -279,7 +279,7 @@ const AdminTaskTables = ({
                             <Badge>Not submitted</Badge>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-sm">{s.score ?? "—"}</td>
+                        <td className="px-4 py-3 text-sm">{s.score ?? 0}</td>
                         <td className="px-4 py-3 text-sm">
                           {screenshotsCount > 0 ? (
                             <button
@@ -349,7 +349,7 @@ const AdminTaskTables = ({
                       <Badge variant={s.isLate ? "red" : "green"}>{s.isLate ? "Late" : "On time"}</Badge>
                     </div>
                     <div className="mt-3 text-sm text-gray-700">{moment(s.submittedAt).format("LLL")}</div>
-                    <div className="mt-2 text-sm">Score: {s.score ?? "—"}</div>
+                    <div className="mt-2 text-sm">Score: {s.score ?? 0}</div>
                     <div
                       className="mt-2 text-sm text-blue-600 hover:underline cursor-pointer"
                       onClick={() =>

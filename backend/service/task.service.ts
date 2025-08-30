@@ -613,6 +613,7 @@ export class TaskService {
       const message = updatedSubmission.isApproved
         ? "Submission approved successfully"
         : "Submission rejected";
+      console.log(`updated = ${JSON.stringify(updatedSubmission, null, 2)}`)
 
       return {
         status: "success",

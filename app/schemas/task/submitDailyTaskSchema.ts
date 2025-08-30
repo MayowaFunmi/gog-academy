@@ -3,8 +3,7 @@ import * as yup from "yup";
 export const createTaskSubmissionSchema = yup.object({
   submission: yup
     .string()
-    .optional()
-    .max(1000, "Submission must not exceed 1000 characters"),
+    .optional(),
 
   screenshots: yup
     .array()

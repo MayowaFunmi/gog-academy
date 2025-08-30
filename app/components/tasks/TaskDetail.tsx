@@ -220,12 +220,13 @@ const TaskDetail = ({ taskId, weekId }: DailyTaskProps) => {
                     <>
                       {task.data?.taskType?.requiresSubmissions && (
                         <Button
-                          className={`px-4 py-2 text-white rounded-lg  transition 
+                          className={`px-4 py-2 text-white rounded-lg transition 
                             ${userTaskSubmission?.data ||
                               new Date() < new Date(task.data.startTime)
                               ? "bg-gray-500 opacity-50 cursor-not-allowed"
                               : "bg-green-500 hover:bg-green-600"
-                            }`}
+                            }
+                            `}
                           onClick={() => setIsOpen(true)}
                           disabled={
                             userTaskSubmission?.data ||

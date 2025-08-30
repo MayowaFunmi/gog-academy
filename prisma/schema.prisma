@@ -83,35 +83,35 @@ enum Title {
 }
 
 model UserProfile {
-  id                         String      @id @default(uuid())
+  id                         String   @id @default(uuid())
   cohortId                   String
-  userId                     String      @unique @map("user_id")
+  userId                     String   @unique @map("user_id")
   title                      Title
-  dateOfBirth                DateTime    @map("date_of_birth")
+  dateOfBirth                DateTime @map("date_of_birth")
   address                    String
-  stateOfResidence           String?     @default("") @map("state_of_residence")
+  stateOfResidence           String?  @default("") @map("state_of_residence")
   country                    String
-  maritalStatus              String      @map("marital_status")
-  salvationStatus            String      @map("salvation_status")
-  salvationStory             String      @map("salvation_story")
-  gogMembershipStatus        Boolean     @map("gog_membership_status")
-  previouslyApplied          Boolean     @default(false) @map("previously_applied")
-  gogMembershipYear          String?     @map("gog_membership_date")
-  classCommitmentStatus      Boolean     @map("commitment_status")
-  assignmentCommitmentStatus Boolean     @map("assignment_commitment_status")
-  reasonForJoining           String      @map("reason_for_joining")
-  churchName                 String      @map("church_name")
-  occupation                 String      @map("occupation")
-  profilePicture             String?     @map("profile_picture")
-  createdAt                  DateTime    @default(now()) @map("created_at")
-  updatedAt                  DateTime    @updatedAt @map("updated_at")
-  refereeName                String      @map("referee_name")
-  refereePhoneNumber         String      @map("referee_phone_number")
-  refereeEmail               String      @map("referee_email")
-  refereeRelationship        String      @map("referee_relationship")
-  user                       User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  maritalStatus              String   @map("marital_status")
+  salvationStatus            String   @map("salvation_status")
+  salvationStory             String   @map("salvation_story")
+  gogMembershipStatus        Boolean  @map("gog_membership_status")
+  previouslyApplied          Boolean  @default(false) @map("previously_applied")
+  gogMembershipYear          String?  @map("gog_membership_date")
+  classCommitmentStatus      Boolean  @map("commitment_status")
+  assignmentCommitmentStatus Boolean  @map("assignment_commitment_status")
+  reasonForJoining           String   @map("reason_for_joining")
+  churchName                 String   @map("church_name")
+  occupation                 String   @map("occupation")
+  profilePicture             String?  @map("profile_picture")
+  createdAt                  DateTime @default(now()) @map("created_at")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+  refereeName                String   @map("referee_name")
+  refereePhoneNumber         String   @map("referee_phone_number")
+  refereeEmail               String   @map("referee_email")
+  refereeRelationship        String   @map("referee_relationship")
+  user                       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   // attendance                 Attendance?
-  consentCheck               Boolean     @default(false) @map("consent_check")
+  consentCheck               Boolean  @default(false) @map("consent_check")
 
   @@map("user_profiles")
 }
@@ -196,7 +196,7 @@ model TaskSubmission {
   taskId      String   @map("task_id")
   weekId      String   @map("week_id")
   submission  String?
-  score       Int?
+  score       Int     @default(0)
   submittedAt DateTime @default(now()) @map("submitted_at")
   isSubmitted Boolean  @default(false) @map("is_submitted")
   isLate      Boolean? @default(false) @map("is_late")
@@ -232,8 +232,8 @@ model Attendance {
   isLate     Boolean  @default(false)
   score      Int
 
-  user User @relation(fields: [userId], references: [id])
-  task DailyTask   @relation(fields: [taskId], references: [id])
+  user User      @relation(fields: [userId], references: [id])
+  task DailyTask @relation(fields: [taskId], references: [id])
 
   @@map("attendance")
 }

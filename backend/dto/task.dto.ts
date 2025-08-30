@@ -44,7 +44,7 @@ export const taskSubmissionSchema = z.object({
   userId: z.string({ required_error: "User ID is required"}),
   taskId: z.string({ required_error: "Task ID is required"}),
   weekId: z.string({ required_error: "Week ID is required"}),
-  submission: z.string().max(1000).nullable().optional()
+  submission: z.string().nullable().optional()
 })
 
 export interface CreateTaskSubmissionInput {

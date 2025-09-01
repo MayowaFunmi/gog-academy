@@ -32,11 +32,11 @@ export const adminMenuItems: MenuItems[] = [
     icon: HiOutlineClipboardCheck,
     link: "/admin/tasks",
   },
-  {
-    title: "Tasks Submissions",
-    icon: HiOutlineClipboardCheck,
-    link: "/admin/tasks/submissions",
-  },
+  // {
+  //   title: "Tasks Submissions",
+  //   icon: HiOutlineClipboardCheck,
+  //   link: "/admin/tasks/submissions",
+  // },
   {
     title: "Assignments",
     icon: MdAssignment,
@@ -52,20 +52,20 @@ export const adminMenuItems: MenuItems[] = [
     icon: MdBarChart,
     dropdown: [
       {
-        title: "Tasks",
+        title: "Weekly",
         icon: HiOutlineClipboardCheck,
-        link: "/admin/reports/tasks",
+        link: "/admin/reports/weekly",
       },
-      {
-        title: "Assignments",
-        icon: MdAssignment,
-        link: "/admin/reports/assignments",
-      },
-      {
-        title: "Attendance",
-        icon: AiOutlineCheckSquare,
-        link: "/admin/reports/attendance",
-      },
+      // {
+      //   title: "Assignments",
+      //   icon: MdAssignment,
+      //   link: "/admin/reports/assignments",
+      // },
+      // {
+      //   title: "Attendance",
+      //   icon: AiOutlineCheckSquare,
+      //   link: "/admin/reports/attendance",
+      // },
     ],
   },
 ];

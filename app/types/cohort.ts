@@ -72,7 +72,6 @@ export interface SingleCohortResponse {
   data: CohortDetails;
 }
 
-
 export interface CohortFormData {
   cohort: string;
   batch: string;

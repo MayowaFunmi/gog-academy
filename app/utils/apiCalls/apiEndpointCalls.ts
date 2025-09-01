@@ -24,6 +24,7 @@ import {
 } from "@/app/types/task";
 import { ProfileResponse, UserResponse } from "@/app/types/user";
 import { AttendanceFormData, AttendanceResponse } from "@/app/types/attendance";
+import { WeeklyReportResponse } from "@/app/types/reports";
 
 const signIn = async (data: LoginFields): Promise<AuthResponse> => {
   try {
@@ -317,6 +318,16 @@ const getUserDailyTaskAttendance = async (
   }
 };
 
+const getWeeklyReport = async (weekId: string): Promise<WeeklyReportResponse> => {
+  try {
+    const respone = await apiClient.get(`/api/reports/weekly-report/${weekId}`)
+    return respone.data as WeeklyReportResponse
+  } catch (error) {
+    console.error("API error:", error);
+    throw error;
+  }
+}
+
 const apiEndpointCalls = {
   signIn,
   signUp,
@@ -342,7 +353,8 @@ const apiEndpointCalls = {
   markTaskAttendance,
   getUserDailyTaskAttendance,
   getStudentTaskDetail,
-  approveSubmission
+  approveSubmission,
+  getWeeklyReport
 };
 
 export default apiEndpointCalls;

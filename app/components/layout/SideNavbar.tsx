@@ -2,7 +2,12 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { MdMenu, MdClose } from "react-icons/md";
+import {
+  MdMenu,
+  MdClose,
+  MdKeyboardArrowDown,
+  MdKeyboardArrowUp,
+} from "react-icons/md";
 import { usePathname } from "next/navigation";
 import {
   adminMenuItems,
@@ -13,10 +18,16 @@ import { useSession } from "next-auth/react";
 
 const SidebarNav = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const pathname = usePathname();
   const { data: session } = useSession();
+
   const isAdmin = session?.user?.roles?.includes("SuperAdmin");
   const isStudent = session?.user?.roles?.includes("Student");
+
+  const handleDropdownToggle = (title: string) => {
+    setOpenDropdown(openDropdown === title ? null : title);
+  };
 
   const renderMenu = (menuItems: MenuItems[]) => {
     return (
@@ -38,7 +49,6 @@ const SidebarNav = () => {
         `}
         >
           {/* Logo */}
-
           <div className="flex flex-col space-y-3 items-center justify-center h-25 border-b">
             <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
               GA
@@ -57,24 +67,42 @@ const SidebarNav = () => {
           <nav className="mt-4 px-4 space-y-2">
             {menuItems.map((item) => (
               <div key={item.title}>
-                <Link
-                  href={item.link || "#"}
+                <div
                   className={`
-                  flex items-center gap-3 p-2 rounded-md
-                  hover:bg-blue-100 transition-colors duration-150
-                  ${
-                    item.link &&
-                    (pathname === item.link || pathname.startsWith(item.link))
-                      ? "bg-blue-100 font-semibold"
-                      : ""
+                    flex items-center justify-between cursor-pointer
+                    p-2 rounded-md hover:bg-blue-100 transition-colors duration-150
+                    ${
+                      item.link &&
+                      (pathname === item.link || pathname.startsWith(item.link))
+                        ? "bg-blue-100 font-semibold"
+                        : ""
+                    }
+                  `}
+                  onClick={() =>
+                    item.dropdown ? handleDropdownToggle(item.title) : null
                   }
-                `}
                 >
-                  <item.icon className="text-xl" />
-                  <span>{item.title}</span>
-                </Link>
+                  <div className="flex items-center gap-3">
+                    <item.icon className="text-xl" />
+                    {item.link ? (
+                      <Link href={item.link}>{item.title}</Link>
+                    ) : (
+                      <span>{item.title}</span>
+                    )}
+                  </div>
+                  {item.dropdown && (
+                    <span className="ml-auto">
+                      {openDropdown === item.title ? (
+                        <MdKeyboardArrowUp />
+                      ) : (
+                        <MdKeyboardArrowDown />
+                      )}
+                    </span>
+                  )}
+                </div>
+
                 {/* Dropdown */}
-                {item.dropdown && (
+                {item.dropdown && openDropdown === item.title && (
                   <div className="ml-8 mt-1 space-y-1">
                     {item.dropdown.map((sub) => (
                       <Link
@@ -98,7 +126,7 @@ const SidebarNav = () => {
   };
 
   return (
-    <div className="">
+    <div>
       {isAdmin
         ? renderMenu(adminMenuItems)
         : isStudent

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { ApiResponse } from "../types/apiResponse";
+import { SubmissionStatus } from "@prisma/client";
 
 export class ReportService {
   constructor() {}
@@ -39,7 +40,7 @@ export class ReportService {
           prisma.academyTaskType.findMany(),
           prisma.taskSubmission.findMany({
             where: {
-              isApproved: true,
+              status: SubmissionStatus.APPROVED,
               academicWeek: {
                 startDate: { gte: week.startDate },
                 endDate: { lte: week.endDate },

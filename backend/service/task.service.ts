@@ -17,6 +17,7 @@ import {
   AcademicWeek,
   AcademyTaskType,
   DailyTask,
+  SubmissionStatus,
   TaskSubmission,
 } from "@prisma/client";
 import {
@@ -419,14 +420,11 @@ export class TaskService {
         attendance,
         totalSubmissions,
         taskSubmissions,
-      ] = await prisma.$transaction([
+      ] = await Promise.all([
         prisma.dailyTask.findUnique({
           where: { id: taskId },
-          include: {
-            taskType: true,
-          },
+          include: { taskType: true },
         }),
-
         prisma.attendance.count({ where: { taskId } }),
         prisma.attendance.findMany({
           where: { taskId },
@@ -558,7 +556,7 @@ export class TaskService {
           submission: submission ?? null,
           isLate,
           // score: 5,
-          isSubmitted: true,
+          status: SubmissionStatus.SUBMITTED,
         },
       });
 
@@ -602,18 +600,25 @@ export class TaskService {
         return await tx.taskSubmission.update({
           where: { id: submissionId },
           data: {
-            isApproved: !submission.isApproved,
-            score: submission.isApproved
-              ? { decrement: 5 } // was approved, now disapproving → decrease
-              : { increment: 5 }, // was not approved, now approving → increase
+            status:
+              submission.status === SubmissionStatus.SUBMITTED
+                ? SubmissionStatus.APPROVED
+                : submission.status === SubmissionStatus.APPROVED
+                ? SubmissionStatus.REJECTED
+                : SubmissionStatus.APPROVED,
+            score:
+              submission.status === SubmissionStatus.APPROVED
+                ? { decrement: 5 } // was approved, now disapproving → decrease
+                : { increment: 5 }, // was not approved, now approving → increase
           },
         });
       });
 
-      const message = updatedSubmission.isApproved
-        ? "Submission approved successfully"
-        : "Submission rejected";
-      console.log(`updated = ${JSON.stringify(updatedSubmission, null, 2)}`)
+      const message =
+        updatedSubmission.status === SubmissionStatus.APPROVED
+          ? "Submission approved successfully"
+          : "Submission rejected";
+      console.log(`updated = ${JSON.stringify(updatedSubmission, null, 2)}`);
 
       return {
         status: "success",
@@ -654,15 +659,15 @@ export class TaskService {
 
     try {
       const [approvedCount, unapprovedCount, approved, unapproved] =
-        await prisma.$transaction([
+        await Promise.all([
           prisma.taskSubmission.count({
-            where: { weekId, isApproved: true },
+            where: { weekId, status: SubmissionStatus.APPROVED },
           }),
           prisma.taskSubmission.count({
-            where: { weekId, isApproved: false },
+            where: { weekId, status: { not: SubmissionStatus.APPROVED } },
           }),
           prisma.taskSubmission.findMany({
-            where: { weekId, isApproved: true },
+            where: { weekId, status: SubmissionStatus.APPROVED },
             skip,
             take: pageSize,
             include: {
@@ -676,7 +681,7 @@ export class TaskService {
             },
           }),
           prisma.taskSubmission.findMany({
-            where: { weekId, isApproved: false },
+            where: { weekId, status: { not: SubmissionStatus.APPROVED } },
             skip,
             take: pageSize,
             include: {

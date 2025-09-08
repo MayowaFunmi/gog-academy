@@ -23,25 +23,26 @@ enum Gender {
 }
 
 model User {
-  id              String           @id @default(uuid())
-  username        String           @unique
-  uniqueId        String           @unique @map("unique_id")
-  matricNumber    String?          @unique @map("matric_number")
+  id              String            @id @default(uuid())
+  username        String            @unique
+  uniqueId        String            @unique @map("unique_id")
+  matricNumber    String?           @unique @map("matric_number")
   firstName       String
   lastName        String
   gender          Gender
-  email           String           @unique
-  phoneNumber     String           @unique @map("phone_number")
+  email           String            @unique
+  phoneNumber     String            @unique @map("phone_number")
   password        String
-  profileStrength Int              @default(0) @map("profile_strength")
-  createdAt       DateTime         @default(now()) @map("created_at")
-  updatedAt       DateTime         @updatedAt @map("updated_at")
+  profileStrength Int               @default(0) @map("profile_strength")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
   roles           UserRole[]
   userProfile     UserProfile?
-  isActive        Boolean          @default(false) @map("is_active")
-  lastLogin       DateTime?        @map("last_login")
+  isActive        Boolean           @default(false) @map("is_active")
+  lastLogin       DateTime?         @map("last_login")
   attendance      Attendance[]
   TaskSubmission  TaskSubmission[]
+  Battalion       BattalionMember[]
 
   @@map("users")
 }
@@ -80,6 +81,13 @@ enum Title {
   Prophetess
   Chief
   Honorable
+}
+
+enum SubmissionStatus {
+  PENDING
+  SUBMITTED
+  APPROVED
+  REJECTED
 }
 
 model UserProfile {
@@ -133,17 +141,19 @@ model AcademyCohort {
 }
 
 model AcademyTaskType {
-  id                  String        @id @default(uuid())
-  cohortId            String        @map("cohort_id")
+  id                  String   @id @default(uuid())
+  cohortId            String   @map("cohort_id")
   name                String // prayers, lectures, presentations => attendance  // assignments, SSG reflections, PGG sermons, exams => submissions + marks
   slug                String
-  requiresAttendance  Boolean       @default(false) @map("requires_attendance")
-  requiresSubmissions Boolean       @default(false) @map("requires_submissions")
-  requiresMark        Boolean       @default(false) @map("requires_mark")
-  createdAt           DateTime      @default(now()) @map("created_at")
-  updatedAt           DateTime      @updatedAt @map("updated_at")
-  dailyTasks          DailyTask[]   @relation("TypeTasks") // one-to-many
-  cohort              AcademyCohort @relation(fields: [cohortId], references: [id])
+  requiresAttendance  Boolean  @default(false) @map("requires_attendance")
+  requiresSubmissions Boolean  @default(false) @map("requires_submissions")
+  requiresMark        Boolean  @default(false) @map("requires_mark")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  presentations Presentation[]
+  dailyTasks    DailyTask[]    @relation("TypeTasks") // one-to-many
+  cohort        AcademyCohort  @relation(fields: [cohortId], references: [id])
 
   @@map("academic_task_type")
 }
@@ -191,16 +201,17 @@ model DailyTask {
 }
 
 model TaskSubmission {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  taskId      String   @map("task_id")
-  weekId      String   @map("week_id")
+  id          String           @id @default(uuid())
+  userId      String           @map("user_id")
+  taskId      String           @map("task_id")
+  weekId      String           @map("week_id")
   submission  String?
-  score       Int     @default(0)
-  submittedAt DateTime @default(now()) @map("submitted_at")
-  isSubmitted Boolean  @default(false) @map("is_submitted")
-  isLate      Boolean? @default(false) @map("is_late")
-  isApproved  Boolean? @default(false) @map("is_approved")
+  score       Int              @default(0)
+  submittedAt DateTime         @default(now()) @map("submitted_at")
+  // isSubmitted Boolean  @default(false) @map("is_submitted")
+  status      SubmissionStatus @default(PENDING)
+  isLate      Boolean?         @default(false) @map("is_late")
+  // isApproved  Boolean?         @default(false) @map("is_approved")
 
   user         User                   @relation(fields: [userId], references: [id])
   dailyTask    DailyTask              @relation(fields: [taskId], references: [id])
@@ -222,18 +233,106 @@ model SubmissionScreenshot {
   @@map("submission_screenshot")
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
+
 model Attendance {
-  id         String   @id @default(uuid())
+  id         String           @id @default(uuid())
   userId     String
   taskId     String
   date       DateTime
-  attendedAt DateTime @default(now()) @map("attended_at")
-  marked     Boolean  @default(false)
-  isLate     Boolean  @default(false)
+  attendedAt DateTime         @default(now()) @map("attended_at")
+  status     AttendanceStatus @default(ABSENT)
+  isLate     Boolean          @default(false)
   score      Int
 
   user User      @relation(fields: [userId], references: [id])
   task DailyTask @relation(fields: [taskId], references: [id])
 
   @@map("attendance")
+}
+
+model Presentation {
+  id                 String    @id @default(uuid())
+  cohortId           String    @map("cohort_id")
+  taskTypeId         String    @map("task_type_id")
+  title              String
+  description        String
+  presentationDate   DateTime  @map("presentation_date")
+  submissionDeadline DateTime? @map("submission_deadline")
+  isActivated        Boolean   @default(false) @map("is_activated")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  battalion               BattalionPresentation[]
+  presentationSubmissions PresentationSubmission[]
+
+  taskType AcademyTaskType @relation(fields: [taskTypeId], references: [id], onDelete: Cascade)
+
+  @@index([cohortId, taskTypeId, isActivated])
+  @@map("presentations")
+}
+
+model PresentationSubmission {
+  id             String           @id @default(uuid())
+  presentationId String           @map("presentation_id")
+  battalionId    String           @map("battalion_id")
+  // isSubmitted    Boolean  @default(false) @map("is_submitted")
+  status         SubmissionStatus @default(PENDING)
+  // isApproved     Boolean          @default(false) @map("is_approved")
+  score          Int              @default(0)
+  submittedAt    DateTime         @default(now()) @map("submitted_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  presentation Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+
+  @@unique([presentationId, battalionId])
+  @@index([status])
+  @@map("presentation_submissions")
+}
+
+model BattalionMember {
+  id          String   @id @default(uuid())
+  battalionId String   @map("battalion_id")
+  userId      String   @map("user_id")
+  addedAt     DateTime @default(now()) @map("added_at")
+  isLeader    Boolean  @default(false) @map("is_leader")
+  isActive    Boolean  @default(true) @map("is_active")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  battalion Battalion @relation(fields: [battalionId], references: [id], onDelete: Cascade)
+
+  @@unique([battalionId, userId])
+  @@map("battalion_members")
+}
+
+model Battalion {
+  id       String @id @default(uuid())
+  cohortId String @map("cohort_id")
+  name     String
+
+  presentation BattalionPresentation[]
+  members      BattalionMember[]
+  createdAt    DateTime                @default(now()) @map("created_at")
+  updatedAt    DateTime                @updatedAt @map("updated_at")
+
+  @@index([cohortId])
+  @@map("battalions")
+}
+
+model BattalionPresentation {
+  id             String @id @default(uuid())
+  battalionId    String @map("battalion_id")
+  presentationId String @map("presentation_id")
+
+  battalion    Battalion    @relation(fields: [battalionId], references: [id], onDelete: Cascade)
+  presentation Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([battalionId, presentationId])
+  @@map("battalion_presentation")
 }

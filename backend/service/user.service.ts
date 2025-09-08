@@ -185,19 +185,6 @@ export class UserService {
         }),
       ]);
 
-      // await prisma.$transaction(async (tx) => {
-      //   await tx.user.update({
-      //     where: { id: user.id },
-      //     data: { isActive: true },
-      //   });
-
-      //   await tx.loginLog.create({
-      //     data: { userId: user.id, success: true },
-      //   });
-
-      //   throw new Error("simulate failure"); // would rollback both above
-      // });
-
       return {
         status: "success",
         message: "Login successful",
@@ -401,7 +388,7 @@ export class UserService {
   ): Promise<ApiResponse<{ users: User[]; pagination: PaginationMeta }>> {
     try {
       const skip = (page - 1) * limit;
-      const [totalItems, users] = await prisma.$transaction([
+      const [totalItems, users] = await Promise.all([
         prisma.user.count(),
         prisma.user.findMany({
           skip,

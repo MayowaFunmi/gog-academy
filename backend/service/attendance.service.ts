@@ -1,6 +1,7 @@
 import { isBefore, startOfDay, isAfter } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { ApiResponse } from "../types/apiResponse";
+import { AttendanceStatus } from "@prisma/client";
 
 export class AttendanceService {
   constructor() {}
@@ -46,7 +47,7 @@ export class AttendanceService {
             userId,
             taskId,
             date: today,
-            marked: true,
+            status: AttendanceStatus.PRESENT,
             isLate: isBeforeToday,
             score: 5
           },

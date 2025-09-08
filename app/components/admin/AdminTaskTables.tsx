@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react"
 import clsx from 'clsx'
 import { PaginationMeta } from "@/backend/types/apiResponse";
-import { DailyTask, ScreenshotsData, TaskAttendance, TaskSubmission } from "@/app/types/task";
+import { DailyTask, ScreenshotsData, SubmissionStatus, TaskAttendance, TaskSubmission } from "@/app/types/task";
 import moment from "moment";
 import Modal from "../ui/Modal";
 import TaskScreenshots from "./TaskScreenshots";
@@ -12,6 +12,7 @@ import { useApproveSubmission } from "@/app/hooks/tasks";
 import { fail_notify, success_notify } from "@/app/utils/constants";
 import { AxiosError } from "axios";
 import PageLoader from "../loader/pageLoader";
+import { AttendanceStatus } from "@/app/types/attendance";
 
 const Badge: React.FC<{ variant?: "green" | "blue" | "gray" | "red"; className?: string; children: React.ReactNode }>
   = ({ variant = "gray", className, children }) => (
@@ -273,10 +274,14 @@ const AdminTaskTables = ({
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-700">{moment(s.submittedAt).format("LLL")}</td>
                         <td className="px-4 py-3">
-                          {s.isSubmitted ? (
+                          {s.status === SubmissionStatus.APPROVED ? (
                             <Badge variant={s.isLate ? "red" : "green"}>{s.isLate ? "Late" : "On time"}</Badge>
                           ) : (
-                            <Badge>Not submitted</Badge>
+                            s.status === SubmissionStatus.REJECTED ? (
+                              <Badge variant="red">Rejected</Badge>
+                            ) : (
+                              <Badge>Submitted</Badge>
+                            )
                           )}
                         </td>
                         <td className="px-4 py-3 text-sm">{s.score ?? 0}</td>
@@ -314,12 +319,12 @@ const AdminTaskTables = ({
                           <div
                             onClick={() => handleApproveSubmission(s.id)}
                             className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 
-                              ${s.isApproved ? "bg-green-500" : "bg-gray-300"
+                              ${s.status === SubmissionStatus.APPROVED ? "bg-green-500" : "bg-gray-300"
                               }`}
                           >
                             <div
                               className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 
-                                ${s.isApproved ? "translate-x-6" : "translate-x-0"
+                                ${s.status === SubmissionStatus.APPROVED ? "translate-x-6" : "translate-x-0"
                                 }`}
                             />
                           </div>
@@ -374,12 +379,12 @@ const AdminTaskTables = ({
                       <div
                         onClick={() => handleApproveSubmission(s.id)}
                         className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 
-                              ${s.isApproved ? "bg-green-500" : "bg-gray-300"
+                              ${s.status === SubmissionStatus.APPROVED ? "bg-green-500" : "bg-gray-300"
                           }`}
                       >
                         <div
                           className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 
-                                ${s.isApproved ? "translate-x-6" : "translate-x-0"
+                                ${s.status === SubmissionStatus.APPROVED ? "translate-x-6" : "translate-x-0"
                             }`}
                         />
                       </div>
@@ -426,7 +431,7 @@ const AdminTaskTables = ({
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-700">{moment(a.attendanceAt ?? a.attendanceAt).format("LLL")}</td>
-                  <td className="px-4 py-3"><Badge variant={a.marked ? "green" : "gray"}>{a.marked ? "Marked" : "Not marked"}</Badge></td>
+                  <td className="px-4 py-3"><Badge variant={a.status === AttendanceStatus.PRESENT ? "green" : "gray"}>{a.status === AttendanceStatus.PRESENT ? "Marked" : "Not marked"}</Badge></td>
                   <td className="px-4 py-3">{a.isLate ? <Badge variant="red">Late</Badge> : "—"}</td>
                 </tr>
               ))}
@@ -452,7 +457,7 @@ const AdminTaskTables = ({
                   <Badge variant={a.isLate ? "red" : "green"}>{a.isLate ? "Late" : "On time"}</Badge>
                 </div>
                 <div className="mt-3 text-sm text-gray-700">{moment(a.attendanceAt ?? a.attendanceAt).format("LLL")}</div>
-                <div className="mt-2 text-sm">{a.marked ? "Marked" : "Not marked"}</div>
+                <div className="mt-2 text-sm">{a.status === AttendanceStatus.PRESENT ? "Marked" : "Not marked"}</div>
               </div>
             ))}
           </div>

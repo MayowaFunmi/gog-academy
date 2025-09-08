@@ -1,6 +1,7 @@
 import { PaginationMeta } from "@/backend/types/apiResponse";
 import { User } from "./auth";
 import { AcademicWeek } from "./cohort";
+import { AttendanceStatus } from "./attendance";
 
 export interface TaskType {
   id: string;
@@ -93,6 +94,13 @@ export interface ScreenshotsData {
   uploadedAt: string
 }
 
+export enum SubmissionStatus {
+  PENDING = "PENDING",
+  SUBMITTED = "SUBMITTED",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+}
+
 export interface TaskSubmission {
   id: string
   userId: string
@@ -101,9 +109,10 @@ export interface TaskSubmission {
   submission?: string | null
   score?: number | null
   submittedAt: string
-  isSubmitted: boolean
+  status: SubmissionStatus
+  // isSubmitted: boolean
   isLate: boolean
-  isApproved: boolean
+  // isApproved: boolean
   screenshots?: ScreenshotsData[] | null
   user?: User
 }
@@ -131,7 +140,8 @@ export interface TaskAttendance {
   taskId: string;
   date: string;
   attendanceAt: string;
-  marked: boolean;
+  status: AttendanceStatus
+  // marked: boolean;
   isLate: boolean;
   user?: User
 }
